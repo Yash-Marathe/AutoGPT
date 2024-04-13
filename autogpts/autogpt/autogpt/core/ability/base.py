@@ -1,9 +1,10 @@
 import abc
-from pprint import pformat
-from typing import Any, ClassVar
+from collections.abc import Callable
+from typing import Any, ClassVar, List
 
 import inflection
 from pydantic import Field
+from pydantic.main import BaseModel
 
 from autogpt.core.configuration import SystemConfiguration
 from autogpt.core.planning.simple import LanguageModelConfiguration
@@ -11,20 +12,20 @@ from autogpt.core.plugin.base import PluginLocation
 from autogpt.core.resource.model_providers import CompletionModelFunction
 from autogpt.core.utils.json_schema import JSONSchema
 
-from .schema import AbilityResult
-
+class AbilityResult(BaseModel):
+    # Add any necessary fields or methods for AbilityResult here
+    ...
 
 class AbilityConfiguration(SystemConfiguration):
     """Struct for model configuration."""
 
     location: PluginLocation
-    packages_required: list[str] = Field(default_factory=list)
+    packages_required: List[str] = Field(default_factory=list)
     language_model_required: LanguageModelConfiguration = None
     memory_provider_required: bool = False
     workspace_required: bool = False
 
-
-class Ability(abc.ABC):
+class AbstractAbility(abc.ABC):
     """A class representing an agent ability."""
 
     default_configuration: ClassVar[AbilityConfiguration]
@@ -52,7 +53,7 @@ class Ability(abc.ABC):
         ...
 
     def __str__(self) -> str:
-        return pformat(self.spec)
+        return str(self.spec)
 
     @property
     @classmethod
@@ -63,26 +64,32 @@ class Ability(abc.ABC):
             parameters=cls.parameters,
         )
 
+class AbilityRegistry:
+    """Registry for managing abilities."""
 
-class AbilityRegistry(abc.ABC):
-    @abc.abstractmethod
+    def __init__(self):
+        self._abilities = {}
+
     def register_ability(
         self, ability_name: str, ability_configuration: AbilityConfiguration
     ) -> None:
+        if ability_name in self._abilities:
+            raise ValueError(f"Ability with name {ability_name} already exists.")
+        self._abilities[ability_name] = ability_configuration
+
+    def list_abilities(self) -> List[str]:
+        return list(self._abilities.keys())
+
+    def dump_abilities(self) -> List[CompletionModelFunction]:
+        return [ability.spec for ability in self._abilities.values()]
+
+    def get_ability(self, ability_name: str) -> AbstractAbility:
+        if ability_name not in self._abilities:
+            raise ValueError(f"Ability with name {ability_name} not found.")
+        # Instantiate the ability here and return it
         ...
 
-    @abc.abstractmethod
-    def list_abilities(self) -> list[str]:
-        ...
-
-    @abc.abstractmethod
-    def dump_abilities(self) -> list[CompletionModelFunction]:
-        ...
-
-    @abc.abstractmethod
-    def get_ability(self, ability_name: str) -> Ability:
-        ...
-
-    @abc.abstractmethod
     async def perform(self, ability_name: str, **kwargs: Any) -> AbilityResult:
-        ...
+        ability = self.get_ability(ability_name)
+        return await ability(*kwargs.values())
+
