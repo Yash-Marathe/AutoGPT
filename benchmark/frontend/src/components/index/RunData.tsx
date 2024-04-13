@@ -2,12 +2,28 @@ import React, { useState } from "react";
 import { LatestRun } from "../../lib/types";
 import tw from "tailwind-styled-components";
 
-const RecursiveDropdown: React.FC<{ data: any; skipKeys: string[] }> = ({
+type RecursiveDropdownProps = {
+  data: any;
+  skipKeys: string[];
+};
+
+const isObject = (value: any): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const RecursiveDropdown: React.FC<RecursiveDropdownProps> = ({
   data,
   skipKeys,
 }) => {
-  if (typeof data !== "object" || data === null) {
+  if (data === null || data === undefined) {
     return null;
+  }
+
+  if (Array.isArray(data) && data.length === 0) {
+    return <Data>Empty array</Data>;
+  }
+
+  if (typeof data !== "object") {
+    return <Data>{data}</Data>;
   }
 
   return (
@@ -17,17 +33,7 @@ const RecursiveDropdown: React.FC<{ data: any; skipKeys: string[] }> = ({
           return null;
         }
 
-        // Special case for 'category' key
-        if (key === "category" && Array.isArray(value)) {
-          return (
-            <Section key={key}>
-              <Label>{key}:</Label>
-              <Data>{value.join(", ")}</Data>
-            </Section>
-          );
-        }
-
-        if (typeof value === "object" && value !== null) {
+        if (isObject(value)) {
           return (
             <Dropdown key={key}>
               <DropdownSummary>{key}</DropdownSummary>
@@ -36,22 +42,30 @@ const RecursiveDropdown: React.FC<{ data: any; skipKeys: string[] }> = ({
               </DropdownContent>
             </Dropdown>
           );
-        } else {
-          return (
-            <Section key={key}>
-              <Label>{key}:</Label>
-              <Data>
-                {typeof value === "string" ? value : JSON.stringify(value)}
-              </Data>
-            </Section>
-          );
         }
+
+        return (
+          <Section key={key}>
+            <Label>{key}:</Label>
+            <Data>
+              {typeof value === "string" ? value : JSON.stringify(value)}
+            </Data>
+          </Section>
+        );
       })}
     </>
   );
 };
 
-const RunData: React.FC<{ latestRun: LatestRun }> = ({ latestRun }) => {
+type RunDataProps = {
+  latestRun: LatestRun | null | undefined;
+};
+
+const RunData: React.FC<RunDataProps> = ({ latestRun }) => {
+  if (!latestRun) {
+    return null;
+  }
+
   const date = new Date(latestRun.benchmark_start_time);
   return (
     <Card>
@@ -91,8 +105,6 @@ const RunData: React.FC<{ latestRun: LatestRun }> = ({ latestRun }) => {
   );
 };
 
-export default RunData;
-
 const Card = tw.div`
   bg-white
   p-4
@@ -127,3 +139,5 @@ const DropdownContent = tw.div`
   pl-4
   mt-2
 `;
+
+export default RunData;
