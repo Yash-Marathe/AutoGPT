@@ -1,1 +1,13 @@
-The id to remember is 3791. Read the file instructions_3.txt.
+# Save the id for future use
+ID_TO_REMEMBER = 3791
+
+try:
+    # Read the contents of the instructions file
+    with open("instructions_3.txt", "r") as file:
+        instructions = file.read()
+
+    # Print the id and the instructions
+    print(f"ID to remember: {ID_TO_REMEMBER}\nInstructions: {instructions}")
+except FileNotFoundError:
+    # Handle the case when the file is not found
+    print(f"The file 'instructions_3.txt' was not found.")
