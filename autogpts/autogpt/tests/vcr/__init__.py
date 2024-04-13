@@ -1,55 +1,47 @@
 import logging
 import os
 from hashlib import sha256
+from unittest.mock import patch
 
-import openai.api_requestor
 import pytest
 from pytest_mock import MockerFixture
+from vcr_cassettes import before_record_request, before_record_response, freeze_request_body
 
-from .vcr_filter import (
-    PROXY,
-    before_record_request,
-    before_record_response,
-    freeze_request_body,
-)
-
+PROXY = os.environ.get("PROXY")
 DEFAULT_RECORD_MODE = "new_episodes"
-BASE_VCR_CONFIG = {
-    "before_record_request": before_record_request,
-    "before_record_response": before_record_response,
-    "filter_headers": [
-        "Authorization",
-        "AGENT-MODE",
-        "AGENT-TYPE",
-        "Cookie",
-        "OpenAI-Organization",
-        "X-OpenAI-Client-User-Agent",
-        "User-Agent",
-    ],
-    "match_on": ["method", "headers"],
-}
+
+
+def get_vcr_config(record_mode=None):
+    return {
+        "before_record_request": before_record_request,
+        "before_record_response": before_record_response,
+        "filter_headers": [
+            "Authorization",
+            "AGENT-MODE",
+            "AGENT-TYPE",
+            "Cookie",
+            "OpenAI-Organization",
+            "X-OpenAI-Client-User-Agent",
+            "User-Agent",
+        ],
+        "match_on": ["method", "headers"],
+        "record_mode": record_mode or DEFAULT_RECORD_MODE,
+    }
 
 
 @pytest.fixture(scope="session")
-def vcr_config(get_base_vcr_config):
-    return get_base_vcr_config
-
-
-@pytest.fixture(scope="session")
-def get_base_vcr_config(request):
+def vcr_config(request):
     record_mode = request.config.getoption("--record-mode", default="new_episodes")
-    config = BASE_VCR_CONFIG
-
-    if record_mode is None:
-        config["record_mode"] = DEFAULT_RECORD_MODE
-
-    return config
+    return get_vcr_config(record_mode)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def vcr_cassette_dir(request):
     test_name = os.path.splitext(request.node.name)[0]
-    return os.path.join("tests/vcr_cassettes", test_name)
+    cassette_dir = os.path.join("tests/vcr_cassettes", test_name)
+    os.makedirs(cassette_dir, exist_ok=True)
+    yield cassette_dir
+    os.rmdir(cassette_dir)
 
 
 def patch_api_base(requestor: openai.api_requestor.APIRequestor):
@@ -96,3 +88,5 @@ def patched_api_requestor(mocker: MockerFixture):
         "_prepare_request_raw",
         new=patched_prepare_request,
     )
+    yield
+    mocker.resetall()
