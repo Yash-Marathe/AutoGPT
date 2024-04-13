@@ -4,11 +4,22 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+/**
+ * Constructor for FlutterWindow class.
+ * @param project The Flutter project to use for the window.
+ */
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
+/**
+ * Destructor for FlutterWindow class.
+ */
 FlutterWindow::~FlutterWindow() {}
 
+/**
+ * Handles the creation of the window.
+ * @return True if the window was created successfully, false otherwise.
+ */
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
     return false;
@@ -20,10 +31,12 @@ bool FlutterWindow::OnCreate() {
   // creation / destruction in the startup path.
   flutter_controller_ = std::make_unique<flutter::FlutterViewController>(
       frame.right - frame.left, frame.bottom - frame.top, project_);
+
   // Ensure that basic setup of the controller was successful.
   if (!flutter_controller_->engine() || !flutter_controller_->view()) {
     return false;
   }
+
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
@@ -34,6 +47,9 @@ bool FlutterWindow::OnCreate() {
   return true;
 }
 
+/**
+ * Handles the destruction of the window.
+ */
 void FlutterWindow::OnDestroy() {
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
@@ -42,6 +58,14 @@ void FlutterWindow::OnDestroy() {
   Win32Window::OnDestroy();
 }
 
+/**
+ * Handles messages for the window.
+ * @param hwnd The handle to the window.
+ * @param message The message to handle.
+ * @param wparam The wparam value for the message.
+ * @param lparam The lparam value for the message.
+ * @return The result of handling the message.
+ */
 LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
@@ -58,9 +82,4 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
 
   switch (message) {
     case WM_FONTCHANGE:
-      flutter_controller_->engine()->ReloadSystemFonts();
-      break;
-  }
-
-  return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
-}
+      flutter_controller_->
