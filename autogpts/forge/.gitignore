@@ -1,37 +1,35 @@
-## Original ignores
-autogpt/keys.py
-autogpt/*.json
-*.mpeg
+## Ignored files
 .env
 azure.yaml
 ai_settings.yaml
 last_run_ai_settings.yaml
-.vscode
-.idea/*
-auto-gpt.json
-log.txt
-log-ingestion.txt
-logs
-*.log
-*.mp3
-mem.sqlite3
-venvAutoGPT
+.flaskenv
+.gitignore
+.nox/
+.python-version
+README.md
+requirements.txt
 
-# Byte-compiled / optimized / DLL files
+## Ignored directories
+agbenchmark_config/temp_folder/
+autogpt/
 __pycache__/
+build/
+dist/
+node_modules/
+openai/
+venv/
+
+## Byte-compiled / optimized / DLL files
 *.py[cod]
 *$py.class
 
-# C extensions
+## C extensions
 *.so
 
-# Distribution / packaging
+## Distribution / packaging
 .Python
-build/
 develop-eggs/
-dist/
-plugins/
-plugins_config.yaml
 downloads/
 eggs/
 .eggs/
@@ -48,20 +46,17 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+## PyInstaller
 *.manifest
 *.spec
 
-# Installer logs
+## Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+## Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
 .cache
@@ -72,105 +67,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
+## Translations
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-site/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.direnv/
-.env
-.venv
-env/
-venv*/
-ENV/
-env.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-llama-*
-vicuna-*
-
-# mac
-.DS_Store
-
-openai/
-
-# news
-CURRENT_BULLETIN.md
-
-agbenchmark_config/workspace
-agbenchmark_config/reports
-*.sqlite
-.agbench
-.agbenchmark
-.benchmarks
-.mypy_cache
-.pytest_cache
-.vscode
-ig_*
-agent.db
-agbenchmark_config/updates.json
-agbenchmark_config/challenges_already_beaten.json
-agbenchmark_config/temp_folder/*
+## Django stuff:
