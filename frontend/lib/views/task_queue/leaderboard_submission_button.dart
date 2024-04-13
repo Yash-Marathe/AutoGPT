@@ -5,11 +5,35 @@ class LeaderboardSubmissionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isDisabled;
 
-  LeaderboardSubmissionButton(
-      {required this.onPressed, this.isDisabled = false});
+  const LeaderboardSubmissionButton({
+    Key? key,
+    required this.onPressed,
+    this.isDisabled = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final buttonChild = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Submit to leaderboard',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12.50,
+            fontFamily: 'Archivo',
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        SizedBox(width: 10),
+        Icon(
+          Icons.emoji_events,
+          color: Colors.white,
+          size: 24,
+        ),
+      ],
+    );
+
     final button = SizedBox(
       height: 50,
       child: ElevatedButton(
@@ -22,26 +46,7 @@ class LeaderboardSubmissionButton extends StatelessWidget {
           elevation: 5.0,
         ),
         onPressed: isDisabled ? null : onPressed,
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Submit to leaderboard',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12.50,
-                fontFamily: 'Archivo',
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            SizedBox(width: 10),
-            Icon(
-              Icons.emoji_events,
-              color: Colors.white,
-              size: 24,
-            ),
-          ],
-        ),
+        child: buttonChild,
       ),
     );
 
