@@ -1,22 +1,18 @@
 import 'package:auto_gpt_flutter_client/viewmodels/chat_viewmodel.dart';
-import 'package:auto_gpt_flutter_client/views/chat/continuous_mode_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatInputField extends StatefulWidget {
   // Callback to be triggered when the send button is pressed
   final Function(String) onSendPressed;
-  final Function() onContinuousModePressed;
-  final bool isContinuousMode;
-  // TODO: Create a view model for this class and remove the ChatViewModel
-  final ChatViewModel viewModel;
+  final FocusNode focusNode;
+  final TextEditingController controller;
 
   const ChatInputField({
     Key? key,
     required this.onSendPressed,
-    required this.onContinuousModePressed,
-    this.isContinuousMode = false,
-    required this.viewModel,
+    required this.focusNode,
+    required this.controller,
   }) : super(key: key);
 
   @override
@@ -24,16 +20,106 @@ class ChatInputField extends StatefulWidget {
 }
 
 class _ChatInputFieldState extends State<ChatInputField> {
-  // Controller for the TextField to manage its content
-  final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
   final FocusNode _throwawayFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    widget.focusNode.addListener(() {
+      if (widget.focusNode.hasFocus) {
+        _executeContinuousMode();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.dispose(); // Dispose of the FocusNode when you're done.
+    super.dispose();
+  }
+
+  void _executeContinuousMode() {
+    widget.onSendPressed(widget.controller.text);
+    widget.controller.clear();
+    widget.focusNode.unfocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(
+        minHeight: 50,
+        maxHeight: 400,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.black, width: 0.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: SingleChildScrollView(
+        reverse: true,
+        child: TextField(
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          maxLines: null,
+          decoration: InputDecoration(
+            hintText: 'Type a message...',
+            border: InputBorder.none,
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Tooltip(
+                  message: 'Send a single message',
+                  child: IconButton(
+                    splashRadius: 0.1,
+                    icon: const Icon(Icons.send),
+                    onPressed: () {
+                      widget.onSendPressed(widget.controller.text);
+                      widget.controller.clear();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChatInputFieldWithContinuousMode extends StatefulWidget {
+  // Callback to be triggered when the send button is pressed
+  final Function(String) onSendPressed;
+  final ChatViewModel viewModel;
+  final Function() onContinuousModePressed;
+
+  const ChatInputFieldWithContinuousMode({
+    Key? key,
+    required this.onSendPressed,
+    required this.viewModel,
+    required this.onContinuousModePressed,
+  }) : super(key: key);
+
+  @override
+  _ChatInputFieldWithContinuousModeState createState() =>
+      _ChatInputFieldWithContinuousModeState();
+}
+
+class _ChatInputFieldWithContinuousModeState
+    extends State<ChatInputFieldWithContinuousMode> {
+  late final FocusNode _focusNode;
+  late final TextEditingController _controller;
+  bool _isContinuousMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _controller = TextEditingController();
     _focusNode.addListener(() {
-      if (_focusNode.hasFocus && widget.isContinuousMode) {
+      if (_focusNode.hasFocus) {
         widget.onContinuousModePressed();
       }
     });
@@ -41,14 +127,15 @@ class _ChatInputFieldState extends State<ChatInputField> {
 
   @override
   void dispose() {
-    _focusNode.dispose(); // Dispose of the FocusNode when you're done.
+    _focusNode.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   Future<void> _presentContinuousModeDialogIfNeeded() async {
-    final showContinuousModeDialog = await widget.viewModel.prefsService
-            .getBool('showContinuousModeDialog') ??
-        true;
+    final showContinuousModeDialog =
+        await widget.viewModel.prefsService.getBool('showContinuousModeDialog') ??
+            true;
 
     FocusScope.of(context).requestFocus(_throwawayFocusNode);
     if (showContinuousModeDialog) {
@@ -73,95 +160,29 @@ class _ChatInputFieldState extends State<ChatInputField> {
   }
 
   void _executeContinuousMode() {
-    if (!widget.isContinuousMode) {
-      widget.onSendPressed(_controller.text);
-      _controller.clear();
-      _focusNode.unfocus();
-    }
+    setState(() {
+      _isContinuousMode = true;
+    });
     widget.onContinuousModePressed();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Using LayoutBuilder to provide the current constraints of the widget,
-    // ensuring it rebuilds when the window size changes
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate the width of the chat view based on the constraints provided
-        double chatViewWidth = constraints.maxWidth;
-
-        // Determine the width of the input field based on the chat view width.
-        // If the chat view width is 1000 or more, the input width will be 900.
-        // Otherwise, the input width will be the chat view width minus 40.
-        double inputWidth = (chatViewWidth >= 1000) ? 900 : chatViewWidth - 40;
-
-        return Container(
-          width: inputWidth,
-          // Defining the minimum and maximum height for the TextField container
-          constraints: const BoxConstraints(
-            minHeight: 50,
-            maxHeight: 400,
+    return Column(
+      children: [
+        ChatInputField(
+          onSendPressed: widget.onSendPressed,
+          focusNode: _focusNode,
+          controller: _controller,
+        ),
+        if (!_isContinuousMode)
+          ElevatedButton(
+            onPressed: () {
+              _presentContinuousModeDialogIfNeeded();
+            },
+            child: const Text('Enable continuous mode'),
           ),
-          // Styling the container with a border and rounded corners
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black, width: 0.5),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          // Using SingleChildScrollView to ensure the TextField can scroll
-          // when the content exceeds its maximum height
-          child: SingleChildScrollView(
-            reverse: true,
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              // Allowing the TextField to expand vertically and accommodate multiple lines
-              maxLines: null,
-              decoration: InputDecoration(
-                hintText: 'Type a message...',
-                border: InputBorder.none,
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min, // Set to minimum space
-                  children: [
-                    if (!widget.isContinuousMode)
-                      Tooltip(
-                        message: 'Send a single message',
-                        child: IconButton(
-                          splashRadius: 0.1,
-                          icon: const Icon(Icons.send),
-                          onPressed: () {
-                            widget.onSendPressed(_controller.text);
-                            _controller.clear();
-                          },
-                        ),
-                      ),
-                    Tooltip(
-                      message: widget.isContinuousMode
-                          ? ''
-                          : 'Enable continuous mode',
-                      child: IconButton(
-                        splashRadius: 0.1,
-                        icon: Icon(widget.isContinuousMode
-                            ? Icons.pause
-                            : Icons.fast_forward),
-                        onPressed: () {
-                          // TODO: All of this logic should be handled at a higher level in the widget tree. Temporary
-                          if (!widget.isContinuousMode) {
-                            _presentContinuousModeDialogIfNeeded();
-                          } else {
-                            widget.onContinuousModePressed();
-                          }
-                        },
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      ],
     );
   }
 }
