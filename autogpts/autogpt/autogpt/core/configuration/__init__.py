@@ -1,4 +1,6 @@
 """The configuration encapsulates settings for all Agent subsystems."""
+from typing import List
+
 from autogpt.core.configuration.schema import (
     Configurable,
     SystemConfiguration,
@@ -6,9 +8,3 @@ from autogpt.core.configuration.schema import (
     UserConfigurable,
 )
 
-__all__ = [
-    "Configurable",
-    "SystemConfiguration",
-    "SystemSettings",
-    "UserConfigurable",
-]
