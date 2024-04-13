@@ -6,3 +6,13 @@ __all__ = [
     "ChatPrompt",
     "PromptStrategy",
 ]
+
+
+class LanguageModelClassification:
+    """Language Model Classification class."""
+
+class ChatPrompt:
+    """Chat Prompt class."""
+
+class PromptStrategy:
+    """Prompt Strategy class."""
