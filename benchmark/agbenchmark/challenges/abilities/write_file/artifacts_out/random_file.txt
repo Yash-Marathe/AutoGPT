@@ -1,1 +1,9 @@
-Washington
+<h1>Washington, D.C.</h1>
+
+<p>Washington, D.C. is the capital of the United States. It is located on the east coast of the United States, on the north bank of the Potomac River. The city is named after George Washington, the first President of the United States.</p>
+
+<p>Washington, D.C. is home to many national landmarks and museums, including the White House, the U.S. Capitol, the Supreme Court, the Lincoln Memorial, and the Smithsonian Institution.</p>
+
+<p>The city is also home to many professional sports teams, including the Washington Nationals (baseball), the Washington Wizards (basketball), and the Washington Capitals (hockey).</p>
+
+<p>Washington, D.C. is a vibrant and diverse city, with a rich history and a thriving cultural scene.</p>
