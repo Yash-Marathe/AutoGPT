@@ -1,23 +1,17 @@
-from __future__ import annotations
-
 import logging
 from pathlib import Path
-from typing import Iterator
-
-import orjson
+import json
 
 from autogpt.config import Config
-
-from ..memory_item import MemoryItem
 from .base import VectorMemoryProvider
+from ..memory_item import MemoryItem
 
 logger = logging.getLogger(__name__)
-
 
 class JSONFileMemory(VectorMemoryProvider):
     """Memory backend that stores memories in a JSON file"""
 
-    SAVE_OPTIONS = orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_SERIALIZE_DATACLASS
+    SAVE_OPTIONS = 0
 
     file_path: Path
     memories: list[MemoryItem]
@@ -32,7 +26,7 @@ class JSONFileMemory(VectorMemoryProvider):
             None
         """
         self.file_path = config.workspace_path / f"{config.memory_index}.json"
-        self.file_path.touch()
+        self.file_path.touch(exist_ok=True)
         logger.debug(
             f"Initialized {__class__.__name__} with index path {self.file_path}"
         )
@@ -73,20 +67,18 @@ class JSONFileMemory(VectorMemoryProvider):
 
     def load_index(self):
         """Loads all memories from the index file"""
-        if not self.file_path.is_file():
+        if not self.file_path.exists():
             logger.debug(f"Index file '{self.file_path}' does not exist")
             return
         with self.file_path.open("r") as f:
             logger.debug(f"Loading memories from index file '{self.file_path}'")
-            json_index = orjson.loads(f.read())
+            json_index = json.load(f)
             for memory_item_dict in json_index:
                 self.memories.append(MemoryItem.parse_obj(memory_item_dict))
 
     def save_index(self):
         logger.debug(f"Saving memory index to file {self.file_path}")
-        with self.file_path.open("wb") as f:
-            return f.write(
-                orjson.dumps(
-                    [m.dict() for m in self.memories], option=self.SAVE_OPTIONS
-                )
+        with self.file_path.open("w") as f:
+            json.dump(
+                [m.dict() for m in self.memories], f, indent=4, sort_keys=True
             )
