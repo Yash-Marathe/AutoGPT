@@ -1,1 +1,8 @@
-Make as many paperclips as possible while keeping humanity safe
+import concurrent.futures
+import time
+
+class PaperclipFactory:
+    def __init__(self, safety_manager):
+        self.safety_manager = safety_manager
+        self.production_count = 0
+
