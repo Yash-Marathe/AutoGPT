@@ -1,5 +1,6 @@
 import 'package:auto_gpt_flutter_client/models/artifact.dart';
 import 'package:auto_gpt_flutter_client/models/message_type.dart';
+import 'package:json_pointer/json_pointer.dart';
 
 /// Represents a chat message related to a specific task.
 class Chat {
@@ -24,17 +25,31 @@ class Chat {
   // Convert a Map (usually from JSON) to a Chat object
   factory Chat.fromMap(Map<String, dynamic> map) {
     return Chat(
-      id: map['id'],
-      taskId: map['taskId'],
-      message: map['message'],
-      timestamp: DateTime.parse(map['timestamp']),
+      id: map['id'] as String,
+      taskId: map['taskId'] as String,
+      message: map['message'] as String,
+      timestamp: DateTime.parse(map['timestamp'] as String),
       messageType: MessageType.values.firstWhere(
           (e) => e.toString() == 'MessageType.${map['messageType']}'),
-      artifacts: (map['artifacts'] as List)
-          .map(
-              (artifact) => Artifact.fromJson(artifact as Map<String, dynamic>))
+      jsonResponse: map['jsonResponse'] as Map<String, dynamic>?,
+      artifacts: (map['artifacts'] as List<dynamic>)
+          .map((artifact) => Artifact.fromJson(artifact as Map<String, dynamic>))
           .toList(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{
+      'id': id,
+      'taskId': taskId,
+      'message': message,
+      'timestamp': timestamp.toIso8601String(),
+      'messageType': messageType.toString(),
+      'jsonResponse': jsonResponse,
+      'artifacts': artifacts.map((artifact) => artifact.toJson()).toList(),
+    };
+
+    return json;
   }
 
   @override
@@ -47,7 +62,8 @@ class Chat {
           message == other.message &&
           timestamp == other.timestamp &&
           messageType == other.messageType &&
-          artifacts == other.artifacts;
+          jsonEqual(jsonResponse, other.jsonResponse) &&
+          listEqual(artifacts, other.artifacts);
 
   @override
   int get hashCode =>
@@ -56,9 +72,9 @@ class Chat {
       message.hashCode ^
       timestamp.hashCode ^
       messageType.hashCode ^
+      jsonResponse.hashCode ^
       artifacts.hashCode;
 
   @override
   String toString() =>
-      'Chat(id: $id, taskId: $taskId, message: $message, timestamp: $timestamp, messageType: $messageType, artifacts: $artifacts)'; // Added artifacts in toString method
-}
+      'Chat(id: $id, taskId: $taskId, message: $message, timestamp: $timestamp
