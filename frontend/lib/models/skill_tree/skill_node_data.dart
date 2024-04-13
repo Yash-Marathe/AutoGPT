@@ -9,7 +9,7 @@ class SkillNodeData {
   final int cutoff;
   final Ground ground;
   final Info info;
-  final String evalId;
+  final String? evalId; // Change data type to nullable String
 
   SkillNodeData({
     required this.name,
@@ -19,7 +19,7 @@ class SkillNodeData {
     required this.cutoff,
     required this.ground,
     required this.info,
-    required this.evalId,
+    this.evalId,
   });
 
   factory SkillNodeData.fromJson(Map<String, dynamic> json) {
@@ -31,7 +31,7 @@ class SkillNodeData {
       cutoff: json['cutoff'] ?? 0,
       ground: Ground.fromJson(json['ground'] ?? {}),
       info: Info.fromJson(json['info'] ?? {}),
-      evalId: json['eval_id'] ?? "",
+      evalId: json['eval_id'], // Change here to directly assign json['eval_id']
     );
   }
 }
