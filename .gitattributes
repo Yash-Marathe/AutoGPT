@@ -1,3 +1,26 @@
-frontend/build/* linguist-generated
+# Dependency directories
+vendor/
+# poetry virtualenv
+.venv/
+# Frontend build output
+frontend/build/
+# Linguist-generated files
+**.generated
 
-**/poetry.lock linguist-generated
+# Poetry lock file
+poetry.lock
+
+# Ignore .env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore other unneeded files
+*.log
+*.pot
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
