@@ -4,9 +4,12 @@ import XCTest
 
 class RunnerTests: XCTestCase {
 
-  func testExample() {
-    // If you add code to the Runner application, consider adding tests here.
-    // See https://developer.apple.com/documentation/xctest for more information about using XCTest.
-  }
+    func testFlutterVersion() {
+        let app = FlutterMacOSApplication(url: Bundle.main.bundleURL) as! NSApplication
+        let flutterView = FlutterView(frame: .zero)
+        app.delegate = FlutterMacOSApplicationDelegate(machPort: RunLoop.current.machPort, view: flutterView)
+        XCTAssertNotNil(flutterView.engine, "Flutter engine is not initialized")
+        XCTAssertTrue(flutterView.engine!.runner!.flutterVersion.hasSuffix("."), "Invalid Flutter version format")
+    }
 
 }
