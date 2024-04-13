@@ -14,12 +14,24 @@ class TestSuite {
     };
   }
 
-// Deserialization: Create an object from a Map
+  // Deserialization: Create an object from a Map
   factory TestSuite.fromJson(Map<String, dynamic> json) {
     return TestSuite(
       timestamp: json['timestamp'],
-      tests: List<Task>.from(json['tests'].map(
-          (taskJson) => Task.fromMap(Map<String, dynamic>.from(taskJson)))),
+      tests: (json['tests'] as List)
+          .map((taskJson) => Task.fromJson(taskJson))
+          .toList(),
     );
+  }
+
+  // Factory constructor for a TestSuite with empty tests list
+  factory TestSuite.empty() {
+    return TestSuite(timestamp: '', tests: const []);
+  }
+
+  // Static method to create a TestSuite from a JSON string
+  static TestSuite fromJsonString(String jsonString) {
+    final json = jsonDecode(jsonString);
+    return TestSuite.fromJson(json);
   }
 }
