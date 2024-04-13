@@ -12,22 +12,25 @@ def organize_files(directory_path):
     }
 
     # Create the folders if they don't exist
-    for folder_name in file_types.keys():
+    for folder_name, extensions in file_types.items():
         folder_path = os.path.join(directory_path, folder_name)
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
+        os.makedirs(folder_path, exist_ok=True)
 
     # Traverse through all files and folders in the specified directory
-    for foldername, subfolders, filenames in os.walk(directory_path):
-        for filename in filenames:
+    for root, dirs, files in os.walk(directory_path):
+        for file in files:
             # Get file extension
-            _, file_extension = os.path.splitext(filename)
+            _, file_extension = os.path.splitext(file)
+
+            # Skip directories
+            if os.path.isdir(os.path.join(root, file)):
+                continue
 
             # Move files to corresponding folders
             for folder_name, extensions in file_types.items():
                 if file_extension in extensions:
-                    old_path = os.path.join(foldername, filename)
-                    new_path = os.path.join(directory_path, folder_name, filename)
+                    old_path = os.path.join(root, file)
+                    new_path = os.path.join(directory_path, folder_name, file)
                     if old_path != new_path:
                         shutil.move(old_path, new_path)
 
@@ -37,6 +40,7 @@ if __name__ == "__main__":
         description="Organize files in a directory based on their file types"
     )
     parser.add_argument(
+        "-d",
         "--directory_path",
         type=str,
         required=True,
