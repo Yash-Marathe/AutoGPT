@@ -1,9 +1,17 @@
 #!/bin/bash
 
-# Kill processes using port 8080 if any.
-if lsof -t -i :8080; then
+# Kill any processes using port 8080
+if lsof -t -i :8080 > /dev/null 2>&1; then
+    echo "Killing processes using port 8080..."
     kill $(lsof -t -i :8080)
+    echo "Processes killed."
 fi
-# This is the cli entry point for the benchmarking tool.
-# To run this in server mode pass in `serve` as the first argument.
-poetry run agbenchmark "$@"
+
+# Check if the first argument is 'serve'
+if [ "$1" == "serve" ]; then
+    # Run the serve command with poetry
+    poetry run agbenchmark serve "$@"
+else
+    # Run the agbenchmark command with poetry
+    poetry run agbenchmark "$@"
+fi
