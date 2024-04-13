@@ -1,23 +1,34 @@
+import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'skill_tree_edge.g.dart';
+
+@JsonSerializable()
 class SkillTreeEdge {
-  final String id;
-  final String from;
-  final String to;
-  final String arrows;
+  @JsonKey(name: 'id')
+  final String? id;
+
+  @JsonKey(name: 'from')
+  final String? from;
+
+  @JsonKey(name: 'to')
+  final String? to;
+
+  @JsonKey(name: 'arrows')
+  final String? arrows;
 
   SkillTreeEdge({
-    required this.id,
-    required this.from,
-    required this.to,
-    required this.arrows,
+    this.id,
+    this.from,
+    this.to,
+    this.arrows,
   });
 
-  // Optionally, add a factory constructor to initialize from JSON
-  factory SkillTreeEdge.fromJson(Map<String, dynamic> json) {
-    return SkillTreeEdge(
-      id: json['id'],
-      from: json['from'],
-      to: json['to'],
-      arrows: json['arrows'],
-    );
-  }
+  factory SkillTreeEdge.fromJson(Map<String, dynamic> json) =>
+      _$SkillTreeEdgeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SkillTreeEdgeToJson(this);
 }
+
+
+flutter pub run build_runner build
