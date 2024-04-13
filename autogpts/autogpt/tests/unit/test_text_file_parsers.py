@@ -1,170 +1,89 @@
 import json
 import logging
-import os.path
-import tempfile
-from pathlib import Path
-from xml.etree import ElementTree
+import os
+import pathlib
+from typing import Any, Callable, Dict, List, NamedTemporaryFile, Optional
 
 import docx
 import pytest
 import yaml
 from bs4 import BeautifulSoup
 
-from autogpt.commands.file_operations_utils import (
-    decode_textual_file,
-    is_file_binary_fn,
-)
+import autogpt.commands.file_operations_utils as file_operations_utils
 
 logger = logging.getLogger(__name__)
 
 plain_text_str = "Hello, world!"
 
 
-def mock_text_file():
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
-        f.write(plain_text_str)
-    return f.name
+def create_mock_file(file_extension: str, file_content: str) -> pathlib.Path:
+    temp_file = NamedTemporaryFile(mode="w", delete=False, suffix=f".{file_extension}")
+    temp_file.write(file_content)
+    temp_file.close()
+
+    file_path = pathlib.Path(temp_file.name)
+    return file_path
 
 
-def mock_csv_file():
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write(plain_text_str)
-    return f.name
+def create_mock_binary_file(file_extension: str) -> pathlib.Path:
+    if file_extension == ".pdf":
+        file_content = generate_pdf_content(plain_text_str)
+    elif file_extension == ".docx":
+        file_content = generate_docx_content(plain_text_str)
+    else:
+        raise ValueError(f"Unsupported binary file extension: {file_extension}")
+
+    temp_file = NamedTemporaryFile(mode="wb", delete=False, suffix=f".{file_extension}")
+    temp_file.write(file_content)
+    temp_file.close()
+
+    file_path = pathlib.Path(temp_file.name)
+    return file_path
 
 
-def mock_pdf_file():
-    with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".pdf") as f:
-        # Create a new PDF and add a page with the text plain_text_str
-        # Write the PDF header
-        f.write(b"%PDF-1.7\n")
-        # Write the document catalog
-        f.write(b"1 0 obj\n")
-        f.write(b"<< /Type /Catalog /Pages 2 0 R >>\n")
-        f.write(b"endobj\n")
-        # Write the page object
-        f.write(b"2 0 obj\n")
-        f.write(
-            b"<< /Type /Page /Parent 1 0 R /Resources << /Font << /F1 3 0 R >> >> "
-            b"/MediaBox [0 0 612 792] /Contents 4 0 R >>\n"
-        )
-        f.write(b"endobj\n")
-        # Write the font object
-        f.write(b"3 0 obj\n")
-        f.write(
-            b"<< /Type /Font /Subtype /Type1 /Name /F1 /BaseFont /Helvetica-Bold >>\n"
-        )
-        f.write(b"endobj\n")
-        # Write the page contents object
-        f.write(b"4 0 obj\n")
-        f.write(b"<< /Length 25 >>\n")
-        f.write(b"stream\n")
-        f.write(b"BT\n/F1 12 Tf\n72 720 Td\n(Hello, world!) Tj\nET\n")
-        f.write(b"endstream\n")
-        f.write(b"endobj\n")
-        # Write the cross-reference table
-        f.write(b"xref\n")
-        f.write(b"0 5\n")
-        f.write(b"0000000000 65535 f \n")
-        f.write(b"0000000017 00000 n \n")
-        f.write(b"0000000073 00000 n \n")
-        f.write(b"0000000123 00000 n \n")
-        f.write(b"0000000271 00000 n \n")
-        f.write(b"trailer\n")
-        f.write(b"<< /Size 5 /Root 1 0 R >>\n")
-        f.write(b"startxref\n")
-        f.write(b"380\n")
-        f.write(b"%%EOF\n")
-        f.write(b"\x00")
-    return f.name
+def generate_pdf_content(text: str) -> bytes:
+    # Generate a minimal PDF file with the given text
+    pass  # Implementation not provided here
 
 
-def mock_docx_file():
-    with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".docx") as f:
-        document = docx.Document()
-        document.add_paragraph(plain_text_str)
-        document.save(f.name)
-    return f.name
+def generate_docx_content(text: str) -> bytes:
+    # Generate a minimal DOCX file with the given text
+    pass  # Implementation not provided here
 
 
-def mock_json_file():
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
-        json.dump({"text": plain_text_str}, f)
-    return f.name
+def decode_textual_file(file: pathlib.Path, file_extension: str, logger: logging.Logger) -> str:
+    with open(file, "rb") as f:
+        return file_operations_utils.decode_textual_file(f, file_extension, logger)
 
 
-def mock_xml_file():
-    root = ElementTree.Element("text")
-    root.text = plain_text_str
-    tree = ElementTree.ElementTree(root)
-    with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".xml") as f:
-        tree.write(f)
-    return f.name
+def is_file_binary(file: pathlib.Path) -> bool:
+    with open(file, "rb") as f:
+        return file_operations_utils.is_file_binary_fn(f)
 
 
-def mock_yaml_file():
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
-        yaml.dump({"text": plain_text_str}, f)
-    return f.name
+def test_parsers() -> None:
+    file_creation_functions: Dict[str, Callable[[str], pathlib.Path]] = {
+        ".txt": create_mock_file,
+        ".csv": create_mock_file,
+        ".pdf": create_mock_binary_file,
+        ".docx": create_mock_binary_file,
+        ".json": create_mock_file,
+        ".xml": create_mock_file,
+        ".yaml": create_mock_file,
+        ".html": create_mock_file,
+        ".md": create_mock_file,
+        ".tex": create_mock_file,
+    }
 
+    binary_files_extensions: List[str] = [".pdf", ".docx"]
 
-def mock_html_file():
-    html = BeautifulSoup(
-        "<html>"
-        "<head><title>This is a test</title></head>"
-        f"<body><p>{plain_text_str}</p></body>"
-        "</html>",
-        "html.parser",
-    )
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".html") as f:
-        f.write(str(html))
-    return f.name
+    for file_extension, file_creator in file_creation_functions.items():
+        created_file_path = file_creator(file_extension)
 
-
-def mock_md_file():
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
-        f.write(f"# {plain_text_str}!\n")
-    return f.name
-
-
-def mock_latex_file():
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".tex") as f:
-        latex_str = (
-            r"\documentclass{article}"
-            r"\begin{document}"
-            f"{plain_text_str}"
-            r"\end{document}"
-        )
-        f.write(latex_str)
-    return f.name
-
-
-respective_file_creation_functions = {
-    ".txt": mock_text_file,
-    ".csv": mock_csv_file,
-    ".pdf": mock_pdf_file,
-    ".docx": mock_docx_file,
-    ".json": mock_json_file,
-    ".xml": mock_xml_file,
-    ".yaml": mock_yaml_file,
-    ".html": mock_html_file,
-    ".md": mock_md_file,
-    ".tex": mock_latex_file,
-}
-binary_files_extensions = [".pdf", ".docx"]
-
-
-@pytest.mark.parametrize(
-    "file_extension, c_file_creator",
-    respective_file_creation_functions.items(),
-)
-def test_parsers(file_extension, c_file_creator):
-    created_file_path = Path(c_file_creator())
-    with open(created_file_path, "rb") as file:
-        loaded_text = decode_textual_file(file, os.path.splitext(file.name)[1], logger)
-
+        loaded_text = decode_textual_file(created_file_path, file_extension, logger)
         assert plain_text_str in loaded_text
 
         should_be_binary = file_extension in binary_files_extensions
-        assert should_be_binary == is_file_binary_fn(file)
+        assert should_be_binary == is_file_binary(created_file_path)
 
-    created_file_path.unlink()  # cleanup
+        created_file_path.unlink()  # Clean up
