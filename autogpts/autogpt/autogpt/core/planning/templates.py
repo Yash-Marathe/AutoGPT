@@ -6,42 +6,34 @@
 # Planner defaults #
 ####################
 
-
 USER_OBJECTIVE = (
-    "Write a wikipedia style article about the project: "
+    "Write a Wikipedia-style article about the project: "
     "https://github.com/significant-gravitas/AutoGPT"
 )
 
-
-# Plan Prompt
-# -----------
-
-
 PLAN_PROMPT_CONSTRAINTS = (
-    "~4000 word limit for short term memory. Your short term memory is short, so "
-    "immediately save important information to files.",
+    "~4000 word limit for short-term memory. "
+    "Immediately save important information to files. "
     "If you are unsure how you previously did something or want to recall past "
     "events, thinking about similar events will help you remember.",
-    "No user assistance",
-    "Exclusively use the commands listed below e.g. command_name",
+    "No user assistance.",
+    "Exclusively use the commands listed below e.g. command_name.",
 )
 
 PLAN_PROMPT_RESOURCES = (
-    "Internet access for searches and information gathering.",
-    "Long-term memory management.",
+    "Internet access for searches and information gathering. "
+    "Long-term memory management. "
     "File output.",
 )
 
 PLAN_PROMPT_PERFORMANCE_EVALUATIONS = (
-    "Continuously review and analyze your actions to ensure you are performing to"
-    " the best of your abilities.",
-    "Constructively self-criticize your big-picture behavior constantly.",
-    "Reflect on past decisions and strategies to refine your approach.",
-    "Every command has a cost, so be smart and efficient. Aim to complete tasks in"
-    " the least number of steps.",
-    "Write all code to a file",
+    "Continuously review and analyze your actions to ensure you are performing "
+    "to the best of your abilities. "
+    "Constructively self-criticize your big-picture behavior constantly. "
+    "Reflect on past decisions and strategies to refine your approach. "
+    "Every command has a cost, so be smart and efficient. Aim to complete tasks "
+    "in the least number of steps. Write all code to a file.",
 )
-
 
 PLAN_PROMPT_RESPONSE_DICT = {
     "thoughts": {
@@ -78,7 +70,7 @@ PLAN_PROMPT_MAIN = (
     "Ensure the response can be parsed by Python json.loads"
 )
 
-
 ###########################
 # Parameterized templates #
 ###########################
+
