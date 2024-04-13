@@ -1,18 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:github_sign_in/github_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId:
-          "387936576242-iejdacrjljds7hf99q0p6eqna8rju3sb.apps.googleusercontent.com");
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        "387936576242-iejdacrjljds7hf99q0p6eqna8rju3sb.apps.googleusercontent.com",
+  );
+  final GithubSignIn _githubSignIn = GithubSignIn();
 
-// Sign in with Google using redirect
-// Sign in with Google using redirect
   Future<UserCredential?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleSignInAccount =
-          await googleSignIn.signIn();
+          await _googleSignIn.signIn();
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
             await googleSignInAccount.authentication;
@@ -28,7 +29,6 @@ class AuthService {
     }
   }
 
-// Sign in with GitHub using redirect
   Future<UserCredential?> signInWithGitHub() async {
     try {
       final GithubAuthProvider provider = GithubAuthProvider();
@@ -39,12 +39,11 @@ class AuthService {
     }
   }
 
-  // Sign out
   Future<void> signOut() async {
+    await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
-  // Get current user
   User? getCurrentUser() {
     return _auth.currentUser;
   }
