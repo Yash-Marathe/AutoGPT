@@ -1,30 +1,40 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 
-if [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    echo "This script cannot be run on Windows."
-    echo "Please follow the installation instructions at https://docs.python.org/3/using/windows.html"
-    echo "To install poetry on Windows, please follow the instructions at https://python-poetry.org/docs/master/#installation"
-    
+if [[ "$(uname)" == "Darwin" ]] || [[ "$(uname)" == "Linux" ]]; then
+  if ! command -v python3 &> /dev/null; then
+    echo "python3 could not be found"
+    if ! command -v pyenv &> /dev/null; then
+      echo "pyenv could not be found"
+      curl https://pyenv.run | bash
+      if ! command -v pyenv &> /dev/null; then
+        echo "pyenv install failed, exiting"
+        exit 1
+      fi
+    fi
+    pyenv install 3.11.5
+    pyenv global 3.11.5
+  fi
+
+  if ! command -v poetry &> /dev/null; then
+    echo "poetry could not be found"
+    if [[ ! -d "$HOME/.pyenv" ]]; then
+      echo "pyenv root directory not found, exiting"
+      exit 1
+    fi
+    if [[ ! -d "$HOME/.poetry" ]]; then
+      curl -sSL https://install.python-poetry.org | python3
+      if ! command -v poetry &> /dev/null; then
+        echo "poetry install failed, exiting"
+        exit 1
+      fi
+    fi
+  fi
+
+  if poetry --version &> /dev/null; then
+    exit 0
+  else
+    echo "poetry install failed, exiting"
     exit 1
+  fi
 else
-    if ! command -v python3 &> /dev/null
-    then
-        echo "python3 could not be found"
-        echo "Installing python3 using pyenv..."
-        if ! command -v pyenv &> /dev/null
-        then
-            echo "pyenv could not be found"
-            echo "Installing pyenv..."
-            curl https://pyenv.run | bash
-        fi
-        pyenv install 3.11.5
-        pyenv global 3.11.5
-    fi
-
-    if ! command -v poetry &> /dev/null
-    then
-        echo "poetry could not be found"
-        echo "Installing poetry..."
-        curl -sSL https://install.python-poetry.org | python3 -
-    fi
-fi
+  if [[ "$OSTYPE" == "cygwin" ]] ||
