@@ -16,16 +16,23 @@ allprojects {
         google()
         mavenCentral()
     }
-}
 
-rootProject.buildDir = '../build'
-subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
+}
+
+rootProject.ext {
+    setupKotlin = {
+        dependencies {
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        }
+    }
+}
+
+subprojects {
+    apply from: rootProject.file('setup.gradle.kts')
 }
