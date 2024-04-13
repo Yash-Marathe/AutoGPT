@@ -1,8 +1,9 @@
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
+#include <flutter/flutter_window.h>
+#include <flutter/shell/platform_view_delegate_windows.h>
 #include <windows.h>
 
-#include "flutter_window.h"
 #include "utils.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
@@ -24,20 +25,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
-  FlutterWindow window(project);
+  auto window_delegate = std::make_unique<flutter::PlatformViewDelegateWindows>();
+  auto view = flutter::FlutterViewController::Create(
+      std::move(project), std::move(window_delegate));
+
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.Create(L"auto_gpt_flutter_client", origin, size)) {
-    return EXIT_FAILURE;
-  }
-  window.SetQuitOnClose(true);
-
-  ::MSG msg;
-  while (::GetMessage(&msg, nullptr, 0, 0)) {
-    ::TranslateMessage(&msg);
-    ::DispatchMessage(&msg);
-  }
-
-  ::CoUninitialize();
-  return EXIT_SUCCESS;
-}
+  HWND hwnd = view->CreateWindow(nullptr, L"auto_gpt_flutter_client", origin, size);
+  if (!hwnd) {
+    // Log the error
+    DWORD errCode = GetLastError();
+    LPVOID lpMsgBuf;
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FOR
