@@ -1,13 +1,11 @@
 """A class that does not store any data. This is the default memory provider."""
 from __future__ import annotations
 
-from typing import Iterator, Optional
+from typing import Iterator
 
 from autogpt.config.config import Config
-
-from .. import MemoryItem
-from .base import VectorMemoryProvider
-
+from ..memory_provider import VectorMemoryProvider
+from ..memory_item import MemoryItem
 
 class NoMemory(VectorMemoryProvider):
     """
@@ -15,7 +13,7 @@ class NoMemory(VectorMemoryProvider):
     """
 
     def __init__(self, config: Optional[Config] = None):
-        pass
+        super().__init__(config)
 
     def __iter__(self) -> Iterator[MemoryItem]:
         return iter([])
@@ -27,10 +25,22 @@ class NoMemory(VectorMemoryProvider):
         return 0
 
     def add(self, item: MemoryItem):
+        """
+        Add a new memory item.
+        This method does nothing in this implementation.
+        """
         pass
 
     def discard(self, item: MemoryItem):
+        """
+        Discard a memory item.
+        This method does nothing in this implementation.
+        """
         pass
 
     def clear(self):
+        """
+        Clear all memory items.
+        This method does nothing in this implementation.
+        """
         pass
