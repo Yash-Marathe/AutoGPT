@@ -7,11 +7,13 @@ class Ground {
 
   Ground({
     required this.answer,
-    required this.shouldContain,
-    required this.shouldNotContain,
-    required this.files,
-    required this.eval,
-  });
+    required List<String> shouldContain,
+    required List<String> shouldNotContain,
+    required List<String> files,
+    required Map<String, dynamic> eval,
+  })  : shouldContain = shouldContain.isNotEmpty ? shouldContain : [],
+        shouldNotContain = shouldNotContain.isNotEmpty ? shouldNotContain : [],
+        files = files.isNotEmpty ? files : [];
 
   factory Ground.fromJson(Map<String, dynamic> json) {
     return Ground(
@@ -21,5 +23,15 @@ class Ground {
       files: List<String>.from(json['files'] ?? []),
       eval: json['eval'] ?? {},
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'answer': answer,
+      'should_contain': shouldContain,
+      'should_not_contain': shouldNotContain,
+      'files': files,
+      'eval': eval,
+    };
   }
 }
