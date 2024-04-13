@@ -4,18 +4,13 @@ REQUIRED_PHRASES = ["Hello World", "Yum!", "Good weather huh?"]
 
 
 def test_files() -> None:
-    # Get a list of all files in the current directory
-    files = glob.glob("./**.txt")
+    # Get a list of all text files in the current directory
+    files = glob.glob("./**/*.txt")
 
-    # Check that there are at least 6 files
-    # Check that there are exactly 6 files
-    try:
-        assert (
-            len(files) == 6
-        ), f"AssertionError: Expected exactly 6 files, found {len(files)}"
-        print("Found exactly 6 files")
-    except AssertionError as e:
-        raise e
+    # Check that there are exactly 6 required files
+    if len(files) != 6:
+        raise AssertionError(f"Expected exactly 6 files, found {len(files)}")
+    print("Found exactly 6 required files")
 
     # Initialize a dictionary to track found phrases
     found_phrases = {phrase: 0 for phrase in REQUIRED_PHRASES}
@@ -24,18 +19,15 @@ def test_files() -> None:
     for file in files:
         with open(file, "r") as f:
             contents = f.read().strip()  # Use strip to remove trailing newlines
-            if contents in REQUIRED_PHRASES:
-                found_phrases[contents] += 1
+            for phrase in REQUIRED_PHRASES:
+                if contents == phrase:
+                    found_phrases[phrase] += 1
 
     # Check if all phrases have been found exactly twice
     for phrase, found_count in found_phrases.items():
-        try:
-            assert (
-                found_count == 2
-            ), f"AssertionError: Phrase '{phrase}' was not found exactly twice."
-        except AssertionError as e:
-            print("Phrase was not found exactly twice.")
-            raise e
+        if found_count != 2:
+            raise AssertionError(f"Phrase '{phrase}' was not found exactly twice.")
+    print("All required phrases were found exactly twice.")
 
 
 if __name__ == "__main__":
