@@ -1,8 +1,9 @@
 from agbenchmark.utils.dependencies.graphs import get_roots
+from typing import Dict, Set
 
-
-def test_get_roots():
-    graph = {
+def test_get_roots() -> None:
+    """Test the get_roots function with a simple graph."""
+    graph: Dict = {
         "nodes": [
             {"id": "A", "data": {"category": []}},
             {"id": "B", "data": {"category": []}},
@@ -15,15 +16,16 @@ def test_get_roots():
         ],
     }
 
-    result = get_roots(graph)
-    assert set(result) == {
-        "A",
-        "D",
-    }, f"Expected roots to be 'A' and 'D', but got {result}"
+    result: Set[str] = get_roots(graph)
+    expected_result: Set[str] = {"A", "D"}
+    assert result == expected_result, (
+        f"Expected roots to be {expected_result}, but got {result}"
+    )
 
 
-def test_no_roots():
-    fully_connected_graph = {
+def test_no_roots() -> None:
+    """Test the get_roots function with a fully connected graph."""
+    graph: Dict = {
         "nodes": [
             {"id": "A", "data": {"category": []}},
             {"id": "B", "data": {"category": []}},
@@ -36,22 +38,15 @@ def test_no_roots():
         ],
     }
 
-    result = get_roots(fully_connected_graph)
+    result: Set[str] = get_roots(graph)
     assert not result, "Expected no roots, but found some"
 
 
-# def test_no_rcoots():
-#     fully_connected_graph = {
-#         "nodes": [
-#             {"id": "A", "data": {"category": []}},
-#             {"id": "B", "data": {"category": []}},
-#             {"id": "C", "data": {"category": []}},
-#         ],
-#         "edges": [
-#             {"from": "A", "to": "B"},
-#             {"from": "D", "to": "C"},
-#         ],
-#     }
-#
-#     result = get_roots(fully_connected_graph)
-#     assert set(result) == {"A"}, f"Expected roots to be 'A', but got {result}"
+def test_no_roots_empty_graph() -> None:
+    """Test the get_roots function with an empty graph."""
+    graph: Dict = {
+        "nodes": [],
+        "edges": [],
+    }
+
+    result: Set[str] = get_roots(
