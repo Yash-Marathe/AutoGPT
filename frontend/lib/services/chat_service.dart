@@ -6,9 +6,9 @@ import 'dart:html' as html;
 
 /// Service class for performing chat-related operations.
 class ChatService {
-  final RestApiUtility api;
+  final RestApiUtility _api;
 
-  ChatService(this.api);
+  ChatService(this._api);
 
   /// Executes a step in a specific task.
   ///
@@ -17,10 +17,11 @@ class ChatService {
   Future<Map<String, dynamic>> executeStep(
       String taskId, StepRequestBody stepRequestBody) async {
     try {
-      return await api.post(
+      return await _api.post(
           'agent/tasks/$taskId/steps', stepRequestBody.toJson());
-    } catch (e) {
-      // TODO: We are bubbling up the full response. Revisit this.
+    } catch (e, stackTrace) {
+      // Log the error and stack trace
+      print('An error occurred while executing a step: $e\n$stackTrace');
       rethrow;
     }
   }
@@ -32,7 +33,7 @@ class ChatService {
   Future<Map<String, dynamic>> getStepDetails(
       String taskId, String stepId) async {
     try {
-      return await api.get('agent/tasks/$taskId/steps/$stepId');
+      return await _api.get('agent/tasks/$taskId/steps/$stepId');
     } catch (e) {
       throw Exception('Failed to get step details: $e');
     }
@@ -45,7 +46,7 @@ class ChatService {
   Future<Map<String, dynamic>> listTaskSteps(String taskId,
       {int currentPage = 1, int pageSize = 10}) async {
     try {
-      return await api.get(
+      return await _api.get(
           'agent/tasks/$taskId/steps?current_page=$currentPage&page_size=$pageSize');
     } catch (e) {
       throw Exception('Failed to list task steps: $e');
@@ -59,7 +60,8 @@ class ChatService {
   /// [uri] is the URI of the artifact.
   Future<Map<String, dynamic>> uploadArtifact(
       String taskId, File artifactFile, String uri) async {
-    return Future.value({'status': 'Not implemented yet'});
+    // Implement the uploadArtifact method here
+    throw UnimplementedError('uploadArtifact method is not implemented yet');
   }
 
   /// Downloads a specific artifact.
@@ -69,7 +71,7 @@ class ChatService {
   Future<void> downloadArtifact(String taskId, String artifactId) async {
     try {
       final Uint8List bytes =
-          await api.getBinary('agent/tasks/$taskId/artifacts/$artifactId');
+          await _api.getBinary('agent/tasks/$taskId/artifacts/$artifactId');
 
       // Create a blob from the Uint8List
       final blob = html.Blob([bytes]);
