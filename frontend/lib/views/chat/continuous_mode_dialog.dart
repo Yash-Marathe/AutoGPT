@@ -4,11 +4,19 @@ import 'package:flutter/material.dart';
 class ContinuousModeDialog extends StatefulWidget {
   final VoidCallback? onProceed;
   final ValueChanged<bool>? onCheckboxChanged;
+  final String title;
+  final String description;
+  final String proceedButtonText;
+  final String cancelButtonText;
 
   const ContinuousModeDialog({
     Key? key,
     this.onProceed,
     this.onCheckboxChanged,
+    this.title = 'Continuous Mode',
+    this this.description = 'Agents operating in Continuous Mode will perform Actions without requesting authorization from the user. Configure the number of steps in the settings menu.',
+    this.proceedButtonText = 'Proceed',
+    this.cancelButtonText = 'Cancel',
   }) : super(key: key);
 
   @override
@@ -51,10 +59,10 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
                       : Colors.black),
               const SizedBox(height: 8),
               // Title
-              const Text(
-                'Continuous Mode',
+              Text(
+                widget.title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16,
                   fontFamily: 'Archivo',
@@ -63,12 +71,12 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
               ),
               const SizedBox(height: 8),
               // Block of text
-              const SizedBox(
+              SizedBox(
                 width: 220,
                 child: Text(
-                  'Agents operating in Continuous Mode will perform Actions without requesting authorization from the user. Configure the number of steps in the settings menu.',
+                  widget.description,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 12.50,
                     fontFamily: 'Archivo',
@@ -76,8 +84,8 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
                   ),
                 ),
               ),
-              // Buttons
               const SizedBox(height: 14),
+              // Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -93,10 +101,10 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
                         ),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
-                        'Cancel',
+                      child: Text(
+                        widget.cancelButtonText,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12.50,
                           fontFamily: 'Archivo',
@@ -118,10 +126,10 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
                         ),
                       ),
                       onPressed: widget.onProceed, // Use the provided callback
-                      child: const Text(
-                        'Proceed',
+                      child: Text(
+                        widget.proceedButtonText,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12.50,
                           fontFamily: 'Archivo',
@@ -148,9 +156,9 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
                       }
                     },
                   ),
-                  const Text(
+                  Text(
                     "Don't ask again",
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 11,
                       fontFamily: 'Archivo',
@@ -160,9 +168,4 @@ class _ContinuousModeDialogState extends State<ContinuousModeDialog> {
                 ],
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+
