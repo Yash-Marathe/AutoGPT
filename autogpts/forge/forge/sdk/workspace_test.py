@@ -1,9 +1,8 @@
 import os
-
+import shutil
 import pytest
 
-# Assuming the classes are defined in a file named workspace.py
-from .workspace import LocalWorkspace
+import pyworkspace  # Assuming the classes are defined in a file named workspace.py
 
 # Constants
 TEST_BASE_PATH = "/tmp/test_workspace"
@@ -11,18 +10,15 @@ TEST_FILE_CONTENT = b"Hello World"
 TEST_TASK_ID = "1234"
 
 
-# Setup and Teardown for LocalWorkspace
-
-
 @pytest.fixture
 def setup_local_workspace():
     os.makedirs(TEST_BASE_PATH, exist_ok=True)
-    yield
-    os.system(f"rm -rf {TEST_BASE_PATH}")  # Cleanup after tests
+    yield TEST_BASE_PATH
+    shutil.rmtree(TEST_BASE_PATH)  # Cleanup after tests
 
 
 def test_local_read_write_delete_exists(setup_local_workspace):
-    workspace = LocalWorkspace(TEST_BASE_PATH)
+    workspace = pyworkspace.LocalWorkspace(setup_local_workspace)
 
     # Write
     workspace.write(TEST_TASK_ID, "test_file.txt", TEST_FILE_CONTENT)
@@ -39,7 +35,7 @@ def test_local_read_write_delete_exists(setup_local_workspace):
 
 
 def test_local_list(setup_local_workspace):
-    workspace = LocalWorkspace(TEST_BASE_PATH)
+    workspace = pyworkspace.LocalWorkspace(setup_local_workspace)
     workspace.write(TEST_TASK_ID, "test1.txt", TEST_FILE_CONTENT)
     workspace.write(TEST_TASK_ID, "test2.txt", TEST_FILE_CONTENT)
 
