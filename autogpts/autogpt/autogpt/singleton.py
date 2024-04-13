@@ -1,16 +1,35 @@
-"""The singleton metaclass for ensuring only one instance of a class."""
-import abc
+"""The singleton decorator for ensuring only one instance of a class."""
 
-
-class Singleton(abc.ABCMeta, type):
+def singleton(cls):
     """
-    Singleton metaclass for ensuring only one instance of a class.
+    Singleton decorator for ensuring only one instance of a class.
+    """
+    _instance = {}
+
+    def getinstance(*args, **kwargs):
+        """Get the single instance of the class."""
+        if cls not in _instance:
+            _instance[cls] = cls(*args, **kwargs)
+        return _instance[cls]
+
+    return getinstance
+
+
+@singleton
+class MyClass:
+    """
+    A sample class for which we want to ensure only one instance.
     """
 
-    _instances = {}
+    def __init__(self, value):
+        """
+        Initialize the class with a value.
+        """
+        self.value = value
 
-    def __call__(cls, *args, **kwargs):
-        """Call method for the singleton metaclass."""
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+
+# Test the singleton decorator
+if __name__ == "__main__":
+    obj1 = MyClass(10)
+    obj2 = MyClass(20)
+    print(obj1 is obj2)  # prints True
