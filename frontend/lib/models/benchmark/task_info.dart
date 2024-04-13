@@ -41,21 +41,32 @@ class TaskInfo {
     required this.task,
     required this.answer,
     required this.description,
-  });
+  }) : assert(dataPath != null, 'dataPath cannot be null'),
+       assert(isRegression != null, 'isRegression cannot be null'),
+       assert(category != null, 'category cannot be null'),
+       assert(task != null, 'task cannot be null'),
+       assert(answer != null, 'answer cannot be null'),
+       assert(description != null, 'description cannot be null');
 
   /// Creates a TaskInfo instance from a map.
   ///
   /// [json]: A map containing key-value pairs corresponding to TaskInfo fields.
   ///
   /// Returns a new TaskInfo populated with values from the map.
-  factory TaskInfo.fromJson(Map<String, dynamic> json) => TaskInfo(
-        dataPath: json['data_path'] ?? 'placeholder',
-        isRegression: json['is_regression'] ?? false,
-        category: List<String>.from(json['category']),
-        task: json['task'] ?? 'placeholder',
-        answer: json['answer'] ?? 'placeholder',
-        description: json['description'] ?? 'placeholder',
-      );
+  factory TaskInfo.fromJson(Map<String, dynamic> json) {
+    final List<String> categories = json['category'] != null
+        ? (json['category'] as List<dynamic>)?.map((e) => e as String)?.toList()
+        : <String>[];
+
+    return TaskInfo(
+      dataPath: json['data_path'] ?? 'placeholder',
+      isRegression: json['is_regression'] ?? false,
+      category: categories,
+      task: json['task'] ?? 'placeholder',
+      answer: json['answer'] ?? 'placeholder',
+      description: json['description'] ?? 'placeholder',
+    );
+  }
 
   /// Converts the TaskInfo instance to a map.
   ///
