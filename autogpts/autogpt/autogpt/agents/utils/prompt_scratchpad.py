@@ -1,7 +1,15 @@
 import logging
-from typing import Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from pydantic import BaseModel, Field
+import pydantic
+from pydantic import BaseModel
+from pydantic import Field
 
 from autogpt.core.resource.model_providers.schema import CompletionModelFunction
 from autogpt.core.utils.json_schema import JSONSchema
@@ -9,23 +17,27 @@ from autogpt.core.utils.json_schema import JSONSchema
 logger = logging.getLogger("PromptScratchpad")
 
 
+class JSONSchemaType(str, Enum):
+    STRING = "string"
+    OBJECT = "object"
+    ARRAY = "array"
+    INTEGER = "integer"
+    NUMBER = "number"
+    BOOLEAN = "boolean"
+
+
+@dataclass
 class CallableCompletionModelFunction(CompletionModelFunction):
     method: Callable
 
 
 class PromptScratchpad(BaseModel):
-    commands: dict[str, CallableCompletionModelFunction] = Field(default_factory=dict)
-    resources: list[str] = Field(default_factory=list)
-    constraints: list[str] = Field(default_factory=list)
-    best_practices: list[str] = Field(default_factory=list)
+    commands: Dict[str, CallableCompletionModelFunction] = Field(default_factory=dict)
+    resources: List[str] = Field(default_factory=list)
+    constraints: List[str] = Field(default_factory=list)
+    best_practices: List[str] = Field(default_factory=list)
 
     def add_constraint(self, constraint: str) -> None:
-        """
-        Add a constraint to the constraints list.
-
-        Params:
-            constraint (str): The constraint to be added.
-        """
         if constraint not in self.constraints:
             self.constraints.append(constraint)
 
@@ -33,48 +45,29 @@ class PromptScratchpad(BaseModel):
         self,
         name: str,
         description: str,
-        params: dict[str, str | dict],
+        params: Dict[str, Optional[Dict[str, Any]]],
         function: Callable,
     ) -> None:
-        """
-        Registers a command.
-
-        *Should only be used by plugins.* Native commands should be added
-        directly to the CommandRegistry.
-
-        Params:
-            name (str): The name of the command (e.g. `command_name`).
-            description (str): The description of the command.
-            params (dict, optional): A dictionary containing argument names and their
-              types. Defaults to an empty dictionary.
-            function (callable, optional): A callable function to be called when
-                the command is executed. Defaults to None.
-        """
-        for p, s in params.items():
-            invalid = False
-            if type(s) is str and s not in JSONSchema.Type._value2member_map_:
-                invalid = True
+        for param_name, param_spec in params.items():
+            if not self._is_valid_param_spec(param_spec):
                 logger.warning(
-                    f"Cannot add command '{name}':"
-                    f" parameter '{p}' has invalid type '{s}'."
-                    f" Valid types are: {JSONSchema.Type._value2member_map_.keys()}"
+                    f"Cannot add command '{name}': "
+                    f"parameter '{param_name}' has an invalid type specification."
                 )
-            elif isinstance(s, dict):
-                try:
-                    JSONSchema.from_dict(s)
-                except KeyError:
-                    invalid = True
-            if invalid:
                 return
 
         command = CallableCompletionModelFunction(
             name=name,
             description=description,
             parameters={
-                name: JSONSchema(type=JSONSchema.Type._value2member_map_[spec])
-                if type(spec) is str
-                else JSONSchema.from_dict(spec)
-                for name, spec in params.items()
+                param_name: JSONSchema(
+                    type=self._json_schema_type_to_value(param_spec["type"])
+                    if "type" in param_spec
+                    else JSONSchemaType.STRING
+                ).dict()
+                if param_spec is not None
+                else None
+                for param_name, param_spec in params.items()
             },
             method=function,
         )
@@ -88,21 +81,25 @@ class PromptScratchpad(BaseModel):
         self.commands[name] = command
 
     def add_resource(self, resource: str) -> None:
-        """
-        Add a resource to the resources list.
-
-        Params:
-            resource (str): The resource to be added.
-        """
         if resource not in self.resources:
             self.resources.append(resource)
 
     def add_best_practice(self, best_practice: str) -> None:
-        """
-        Add an item to the list of best practices.
-
-        Params:
-            best_practice (str): The best practice item to be added.
-        """
         if best_practice not in self.best_practices:
             self.best_practices.append(best_practice)
+
+    @staticmethod
+    def _json_schema_type_to_value(json_schema_type: JSONSchemaType) -> str:
+        return json_schema_type.value
+
+    @staticmethod
+    def _is_valid_param_spec(param_spec: Optional[Dict[str, Any]]) -> bool:
+        if param_spec is None:
+            return True
+
+        valid_types = [t.value for t in JSONSchemaType]
+        return (
+            "type" in param_spec
+            and isinstance(param_spec["type"], str)
+            and param_spec["type"] in valid_types
+        )
