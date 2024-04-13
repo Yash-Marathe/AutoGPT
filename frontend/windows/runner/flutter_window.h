@@ -5,15 +5,20 @@
 #include <flutter/flutter_view_controller.h>
 
 #include <memory>
+#include <string>
 
 #include "win32_window.h"
 
-// A window that does nothing but host a Flutter view.
+// A window that hosts a Flutter view.
 class FlutterWindow : public Win32Window {
  public:
-  // Creates a new FlutterWindow hosting a Flutter view running |project|.
-  explicit FlutterWindow(const flutter::DartProject& project);
+  // Creates a new FlutterWindow hosting a Flutter view running the project at
+  // the given |project_path|.
+  explicit FlutterWindow(const std::string& project_path);
   virtual ~FlutterWindow();
+
+  // Creates and shows the FlutterWindow.
+  static FlutterWindow* CreateAndShow();
 
  protected:
   // Win32Window:
@@ -23,11 +28,14 @@ class FlutterWindow : public Win32Window {
                          LPARAM const lparam) noexcept override;
 
  private:
-  // The project to run.
-  flutter::DartProject project_;
+  // Creates and initializes the FlutterViewController.
+  bool CreateFlutterController();
 
-  // The Flutter instance hosted by this window.
-  std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
-};
+  // Handles the WM_SIZE message.
+  void OnSize(UINT const message, WPARAM const wparam, LPARAM const lparam);
 
-#endif  // RUNNER_FLUTTER_WINDOW_H_
+  // Handles the WM_PAINT message.
+  void OnPaint();
+
+  // The path to the project to run.
+  std::string project
