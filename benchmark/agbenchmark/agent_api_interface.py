@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -5,6 +6,8 @@ import pathlib
 import time
 from typing import Any, Dict, Optional
 
+import aiohttp
+from aiohttp import ClientSession
 from agbenchmark.__main__ import TEMP_FOLDER_ABS_PATH, UPDATES_JSON_PATH
 from agbenchmark.agent_interface import get_list_of_file_paths
 from agbenchmark.agent_protocol_client import (
@@ -22,29 +25,27 @@ LOG = logging.getLogger(__name__)
 async def run_api_agent(
     task: ChallengeData, config: Dict[str, Any], artifacts_location: str, timeout: int
 ) -> None:
-    host_value = None
+    host_value = config["AgentBenchmarkConfig"].host + "/ap/v1"
 
-    configuration = Configuration(host=config["AgentBenchmarkConfig"].host + "/ap/v1")
-    async with ApiClient(configuration) as api_client:
+    configuration = Configuration(host=host_value)
+    async with ApiClient(configuration) as api_client, ClientSession() as session:
         api_instance = AgentApi(api_client)
         task_request_body = TaskRequestBody(input=task.task)
 
         start_time = time.time()
         response = await api_instance.create_agent_task(
-            task_request_body=task_request_body
+            task_request_body=task_request_body, session=session
         )
         task_id = response.task_id
 
         await upload_artifacts(
-            api_instance, artifacts_location, task_id, "artifacts_in"
+            api_instance, artifacts_location, task_id, "artifacts_in", session
         )
 
         i = 1
         steps_remaining = True
         while steps_remaining:
-            # Read the existing JSON data from the file
-
-            step = await api_instance.execute_agent_task_step(task_id=task_id)
+            step = await api_instance.execute_agent_task_step(task_id=task_id, session=session)
             await append_updates_file(step)
 
             print(f"[{task.name}] - step {step.name} ({i}. request)")
@@ -54,19 +55,17 @@ async def run_api_agent(
                 raise TimeoutError("Time limit exceeded")
             if not step or step.is_last:
                 steps_remaining = False
-        # if we're calling a mock agent, we "cheat" and give the correct artifacts to pass the tests
         if os.getenv("IS_MOCK"):
             await upload_artifacts(
-                api_instance, artifacts_location, task_id, "artifacts_out"
+                api_instance, artifacts_location, task_id, "artifacts_out", session
             )
 
-        await copy_agent_artifacts_into_temp_folder(api_instance, task_id)
+        await copy_agent_artifacts_into_temp_folder(api_instance, task_id, session)
 
 
-async def copy_agent_artifacts_into_temp_folder(api_instance, task_id):
-    artifacts = await api_instance.list_agent_task_artifacts(task_id=task_id)
+async def copy_agent_artifacts_into_temp_folder(api_instance, task_id, session):
+    artifacts = await api_instance.list_agent_task_artifacts(task_id=task_id, session=session)
     for artifact in artifacts.artifacts:
-        # current absolute path of the directory of the file
         directory_location = pathlib.Path(TEMP_FOLDER_ABS_PATH)
         if artifact.relative_path:
             path = (
@@ -83,11 +82,10 @@ async def copy_agent_artifacts_into_temp_folder(api_instance, task_id):
 
         file_path = directory_location / artifact.file_name
         LOG.info(f"Writing file {file_path}")
-        with open(file_path, "wb") as f:
-            content = await api_instance.download_agent_task_artifact(
-                task_id=task_id, artifact_id=artifact.artifact_id
-            )
+        async with session.get(artifact.download_url) as resp:
+            content = await resp.read()
 
+        with open(file_path, "wb") as f:
             f.write(content)
 
 
@@ -104,7 +102,11 @@ async def append_updates_file(step: Step):
 
 
 async def upload_artifacts(
-    api_instance: ApiClient, artifacts_location: str, task_id: str, type: str
+    api_instance: AgentApi,
+    artifacts_location: str,
+    task_id: str,
+    type: str,
+    session: ClientSession,
 ) -> None:
     for file_path in get_list_of_file_paths(artifacts_location, type):
         relative_path: Optional[str] = "/".join(
@@ -113,9 +115,12 @@ async def upload_artifacts(
         if not relative_path:
             relative_path = None
 
-        await api_instance.upload_agent_task_artifacts(
-            task_id=task_id, file=file_path, relative_path=relative_path
-        )
+        async with session.post(
+            api_instance.upload_agent_task_artifacts_url,
+            data={"task_id": task_id, "file": open(file_path, "rb")},
+            headers={"Content-Type": "multipart/form-data"},
+        ) as resp:
+            print(await resp.text())
 
 
 def create_update_json(step: Step):
