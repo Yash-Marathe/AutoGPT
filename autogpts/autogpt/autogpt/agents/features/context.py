@@ -1,38 +1,53 @@
 from __future__ import annotations
+from typing import List, Any
 
-from typing import TYPE_CHECKING, Any, Optional
-
-if TYPE_CHECKING:
-    from autogpt.core.prompting import ChatPrompt
-    from autogpt.models.context_item import ContextItem
-
-    from ..base import BaseAgent
-
-from autogpt.core.resource.model_providers import ChatMessage
-
+from autogpt.core.prompting import ChatPrompt, ChatMessage
+from autogpt.models.context_item import ContextItem
+from autogpt.agents.base import BaseAgent
 
 class AgentContext:
-    items: list[ContextItem]
+    """Context container for an agent"""
 
-    def __init__(self, items: Optional[list[ContextItem]] = None):
+    def __init__(self, items: List[ContextItem] = None):
+        """Initialize the AgentContext object
+
+        Args:
+            items (List[ContextItem], optional): Initial context items. Defaults to None.
+        """
         self.items = items or []
 
     def __bool__(self) -> bool:
-        return len(self.items) > 0
+        return bool(self.items)
 
     def __contains__(self, item: ContextItem) -> bool:
-        return any([i.source == item.source for i in self.items])
+        return any(i.source == item.source for i in self.items)
 
     def add(self, item: ContextItem) -> None:
+        """Add a context item to the list
+
+        Args:
+            item (ContextItem): The context item to add
+        """
         self.items.append(item)
 
     def close(self, index: int) -> None:
+        """Remove a context item from the list
+
+        Args:
+            index (int): The index of the context item to remove
+        """
         self.items.pop(index - 1)
 
     def clear(self) -> None:
+        """Clear all context items from the list"""
         self.items.clear()
 
     def format_numbered(self) -> str:
+        """Format the context items as a numbered list
+
+        Returns:
+            str: The formatted context items
+        """
         return "\n\n".join([f"{i}. {c.fmt()}" for i, c in enumerate(self.items, 1)])
 
 
@@ -42,20 +57,33 @@ class ContextMixin:
     context: AgentContext
 
     def __init__(self, **kwargs: Any):
-        self.context = AgentContext()
+        """Initialize the ContextMixin object
 
-        super(ContextMixin, self).__init__(**kwargs)
+        Args:
+            **kwargs: Additional keyword arguments
+        """
+        self.context = AgentContext()
+        super().__init__(**kwargs)
 
     def build_prompt(
         self,
         *args: Any,
-        extra_messages: Optional[list[ChatMessage]] = None,
+        extra_messages: List[ChatMessage] = None,
         **kwargs: Any,
     ) -> ChatPrompt:
-        if not extra_messages:
+        """Build a chat prompt with the context section included
+
+        Args:
+            *args: Variable length argument list
+            extra_messages (List[ChatMessage], optional): Additional messages to include in the prompt. Defaults to None.
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            ChatPrompt: The chat prompt with the context section included
+        """
+        if extra_messages is None:
             extra_messages = []
 
-        # Add context section to prompt
         if self.context:
             extra_messages.insert(
                 0,
@@ -63,20 +91,4 @@ class ContextMixin:
                     "## Context\n"
                     f"{self.context.format_numbered()}\n\n"
                     "When a context item is no longer needed and you are not done yet, "
-                    "you can hide the item by specifying its number in the list above "
-                    "to `hide_context_item`.",
-                ),
-            )
-
-        return super(ContextMixin, self).build_prompt(
-            *args,
-            extra_messages=extra_messages,
-            **kwargs,
-        )  # type: ignore
-
-
-def get_agent_context(agent: BaseAgent) -> AgentContext | None:
-    if isinstance(agent, ContextMixin):
-        return agent.context
-
-    return None
+                    "you can hide
