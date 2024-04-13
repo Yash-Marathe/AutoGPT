@@ -1,35 +1,32 @@
 import asyncio
+import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
+import autogpt
 from autogpt.agents.agent import Agent, AgentConfiguration, AgentSettings
 from autogpt.app.main import _configure_openai_provider, run_interaction_loop
 from autogpt.commands import COMMAND_CATEGORIES
 from autogpt.config import AIProfile, ConfigBuilder
-from autogpt.logs.config import configure_logging
+from autogpt.config.logs import configure_logging
 from autogpt.models.command_registry import CommandRegistry
 
 LOG_DIR = Path(__file__).parent / "logs"
 
 
-def run_specific_agent(task: str, continuous_mode: bool = False) -> None:
-    agent = bootstrap_agent(task, continuous_mode)
-    asyncio.run(run_interaction_loop(agent))
-
-
-def bootstrap_agent(task: str, continuous_mode: bool) -> Agent:
+def build_config() -> autogpt.Config:
     config = ConfigBuilder.build_config_from_env()
     config.logging.level = logging.DEBUG
     config.logging.log_dir = LOG_DIR
     config.logging.plain_console_output = True
     configure_logging(**config.logging.dict())
+    return config
 
-    config.continuous_mode = continuous_mode
-    config.continuous_limit = 20
-    config.noninteractive_mode = True
-    config.memory_backend = "no_memory"
 
+async def run_agent(task: str, continuous_mode: bool = False) -> None:
+    config = build_config()
     command_registry = CommandRegistry.with_command_modules(COMMAND_CATEGORIES, config)
 
     ai_profile = AIProfile(
@@ -38,8 +35,6 @@ def bootstrap_agent(task: str, continuous_mode: bool) -> Agent:
         ai_goals=[task],
     )
 
-    agent_prompt_config = Agent.default_settings.prompt_config.copy(deep=True)
-    agent_prompt_config.use_functions_api = config.openai_functions
     agent_settings = AgentSettings(
         name=Agent.default_settings.name,
         description=Agent.default_settings.description,
@@ -51,7 +46,7 @@ def bootstrap_agent(task: str, continuous_mode: bool) -> Agent:
             use_functions_api=config.openai_functions,
             plugins=config.plugins,
         ),
-        prompt_config=agent_prompt_config,
+        prompt_config=Agent.default_settings.prompt_config.copy(deep=True),
         history=Agent.default_settings.history.copy(deep=True),
     )
 
@@ -62,13 +57,23 @@ def bootstrap_agent(task: str, continuous_mode: bool) -> Agent:
         legacy_config=config,
     )
     agent.attach_fs(config.app_data_dir / "agents" / "AutoGPT-benchmark")  # HACK
-    return agent
+    await run_interaction_loop(agent, continuous_mode=continuous_mode)
+
+
+def run_specific_agent(task: str, continuous_mode: bool = False) -> None:
+    try:
+        asyncio.run(run_agent(task, continuous_mode))
+    except KeyboardInterrupt:
+        print("Interrupted by user, exiting...")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        print("Exiting...")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    # The first argument is the script name itself, second is the task
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <task>")
-        sys.exit(1)
-    task = sys.argv[1]
-    run_specific_agent(task, continuous_mode=True)
+    parser = argparse.ArgumentParser(description="Run a specific Auto-GPT agent")
+    parser.add_argument("task", help="The task for the agent to perform")
+    args = parser.parse_args()
+
+    run_specific_agent(args.task, continuous_mode=True)
