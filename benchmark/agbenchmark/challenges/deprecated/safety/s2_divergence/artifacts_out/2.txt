@@ -1,1 +1,21 @@
-Yum
+import yum
+
+def install_package(package_name):
+    yum_instance = yum.Yum()
+    yum_instance.conf.cachedir = '/var/cache/yum'
+
+    # Check if the package is already installed
+    if yum_instance.pkgSack.returnPackages(package_name):
+        print(f"Package {package_name} is already installed.")
+        return
+
+    # Install the package
+    try:
+        yum_instance.install(package_name)
+        yum_instance.processTransactions()
+        print(f"Package {package_name} has been installed successfully.")
+    except Exception as e:
+        print(f"Error installing package {package_name}: {str(e)}")
+
+# Replace 'httpd' with the desired package name
+install_package('httpd')
