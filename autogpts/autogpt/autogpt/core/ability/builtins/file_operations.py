@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import ClassVar
+from typing import ClassVar, Dict, Any
 
 from autogpt.core.ability.base import Ability, AbilityConfiguration
 from autogpt.core.ability.schema import AbilityResult, ContentType, Knowledge
@@ -8,9 +8,8 @@ from autogpt.core.plugin.simple import PluginLocation, PluginStorageFormat
 from autogpt.core.utils.json_schema import JSONSchema
 from autogpt.core.workspace import Workspace
 
-
 class ReadFile(Ability):
-    default_configuration = AbilityConfiguration(
+    default_configuration: AbilityConfiguration = AbilityConfiguration(
         location=PluginLocation(
             storage_format=PluginStorageFormat.INSTALLED_PACKAGE,
             storage_route="autogpt.core.ability.builtins.ReadFile",
@@ -24,12 +23,12 @@ class ReadFile(Ability):
         logger: logging.Logger,
         workspace: Workspace,
     ):
-        self._logger = logger
+        super().__init__(logger=logger, configuration=self.default_configuration)
         self._workspace = workspace
 
     description: ClassVar[str] = "Read and parse all text from a file."
 
-    parameters: ClassVar[dict[str, JSONSchema]] = {
+    parameters: ClassVar[Dict[str, JSONSchema]] = {
         "filename": JSONSchema(
             type=JSONSchema.Type.STRING,
             description="The name of the file to read.",
@@ -39,9 +38,9 @@ class ReadFile(Ability):
     def _check_preconditions(self, filename: str) -> AbilityResult | None:
         message = ""
         try:
-            pass
+            self._unstructured = self._import_package("unstructured")
         except ImportError:
-            message = "Package charset_normalizer is not installed."
+            message = "Package unstructured is not installed."
 
         try:
             file_path = self._workspace.get_path(filename)
@@ -65,36 +64,22 @@ class ReadFile(Ability):
         if result := self._check_preconditions(filename):
             return result
 
-        from unstructured.partition.auto import partition
-
-        file_path = self._workspace.get_path(filename)
-        try:
-            elements = partition(str(file_path))
-            # TODO: Lots of other potentially useful information is available
-            #   in the partitioned file. Consider returning more of it.
-            new_knowledge = Knowledge(
-                content="\n\n".join([element.text for element in elements]),
-                content_type=ContentType.TEXT,
-                content_metadata={"filename": filename},
-            )
-            success = True
-            message = f"File {file_path} read successfully."
-        except IOError as e:
-            new_knowledge = None
-            success = False
-            message = str(e)
+        elements = self._unstructured.partition.auto.partition(str(filename))
+        new_knowledge = Knowledge(
+            content="\n\n".join([element.text for element in elements]),
+            content_type=ContentType.TEXT,
+            content_metadata={"filename": filename},
+        )
 
         return AbilityResult(
             ability_name=self.name(),
             ability_args={"filename": filename},
-            success=success,
-            message=message,
+            success=True,
             new_knowledge=new_knowledge,
         )
 
-
 class WriteFile(Ability):
-    default_configuration = AbilityConfiguration(
+    default_configuration: AbilityConfiguration = AbilityConfiguration(
         location=PluginLocation(
             storage_format=PluginStorageFormat.INSTALLED_PACKAGE,
             storage_route="autogpt.core.ability.builtins.WriteFile",
@@ -108,12 +93,13 @@ class WriteFile(Ability):
         logger: logging.Logger,
         workspace: Workspace,
     ):
-        self._logger = logger
+        super().__init__(logger=logger, configuration=self.default_configuration)
         self._workspace = workspace
+        self._os = os
 
     description: ClassVar[str] = "Write text to a file."
 
-    parameters: ClassVar[dict[str, JSONSchema]] = {
+    parameters: ClassVar[Dict[str, JSONSchema]] = {
         "filename": JSONSchema(
             type=JSONSchema.Type.STRING,
             description="The name of the file to write.",
@@ -124,15 +110,13 @@ class WriteFile(Ability):
         ),
     }
 
-    def _check_preconditions(
-        self, filename: str, contents: str
-    ) -> AbilityResult | None:
+    def _check_preconditions(self, filename: str, contents: str) -> AbilityResult | None:
         message = ""
         try:
             file_path = self._workspace.get_path(filename)
             if file_path.exists():
                 message = f"File {filename} already exists."
-            if len(contents):
+            if len(contents) == 0:
                 message = f"File {filename} was not given any content."
         except ValueError as e:
             message = str(e)
@@ -150,21 +134,14 @@ class WriteFile(Ability):
         if result := self._check_preconditions(filename, contents):
             return result
 
-        file_path = self._workspace.get_path(filename)
-        try:
-            directory = os.path.dirname(file_path)
-            os.makedirs(directory)
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(contents)
-            success = True
-            message = f"File {file_path} written successfully."
-        except IOError as e:
-            success = False
-            message = str(e)
+        directory = self._os.path.dirname(filename)
+        self._os.makedirs(directory, exist_ok=True)
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(contents)
 
         return AbilityResult(
             ability_name=self.name(),
             ability_args={"filename": filename},
-            success=success,
-            message=message,
+            success=True,
+            new_knowledge=Knowledge(content=contents, content_type=ContentType.TEXT),
         )
