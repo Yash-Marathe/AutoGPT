@@ -1,12 +1,6 @@
 import 'package:auto_gpt_flutter_client/models/skill_tree/skill_node_data.dart';
 
 class SkillTreeNode {
-  final String color;
-  final SkillNodeData data;
-  final String id;
-  final String label;
-  final String shape;
-
   SkillTreeNode({
     required this.color,
     required this.data,
@@ -14,6 +8,12 @@ class SkillTreeNode {
     required this.label,
     required this.shape,
   });
+
+  final String color;
+  final SkillNodeData data;
+  final String id;
+  final String label;
+  final String shape;
 
   factory SkillTreeNode.fromJson(Map<String, dynamic> json) {
     return SkillTreeNode(
@@ -23,5 +23,15 @@ class SkillTreeNode {
       label: json['label'] ?? "",
       shape: json['shape'] ?? "",
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'color': color,
+      'data': data.toJson(),
+      'id': id,
+      'label': label,
+      'shape': shape,
+    };
   }
 }
