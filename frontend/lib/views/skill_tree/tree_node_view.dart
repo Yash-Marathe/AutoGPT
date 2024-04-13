@@ -17,47 +17,47 @@ class TreeNodeView extends StatefulWidget {
 class _TreeNodeViewState extends State<TreeNodeView> {
   bool _isHovering = false;
 
+  void _handleTap() {
+    print('Node ${widget.node.id} clicked');
+    final taskQueueViewModel =
+        Provider.of<TaskQueueViewModel>(context, listen: false);
+    if (!taskQueueViewModel.isBenchmarkRunning) {
+      final skillTreeViewModel =
+          Provider.of<SkillTreeViewModel>(context, listen: false);
+      skillTreeViewModel.toggleNodeSelection(widget.node.id);
+      taskQueueViewModel.updateSelectedNodeHierarchyBasedOnOption(
+          taskQueueViewModel.selectedOption,
+          skillTreeViewModel.selectedNode,
+          skillTreeViewModel.skillTreeNodes,
+          skillTreeViewModel.skillTreeEdges);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        print('Node ${widget.node.id} clicked');
-        final taskQueueViewModel =
-            Provider.of<TaskQueueViewModel>(context, listen: false);
-        if (!taskQueueViewModel.isBenchmarkRunning) {
-          final skillTreeViewModel =
-              Provider.of<SkillTreeViewModel>(context, listen: false);
-          skillTreeViewModel.toggleNodeSelection(widget.node.id);
-          taskQueueViewModel.updateSelectedNodeHierarchyBasedOnOption(
-              taskQueueViewModel.selectedOption,
-              skillTreeViewModel.selectedNode,
-              skillTreeViewModel.skillTreeNodes,
-              skillTreeViewModel.skillTreeEdges);
-        }
-      },
+      onTap: _handleTap,
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovering = true),
         onExit: (_) => setState(() => _isHovering = false),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Use minimum space
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: Colors.grey[300], // Light grey
-                borderRadius:
-                    BorderRadius.circular(8), // Slight rounded corners
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
                 child: Icon(
                   Icons.star,
                   color: widget.selected
                       ? Colors.red
-                      : (_isHovering
+                      : _isHovering
                           ? Colors.red
-                          : Colors
-                              .black), // Black when not hovering or selected
+                          : Colors.black,
                 ),
               ),
             ),
