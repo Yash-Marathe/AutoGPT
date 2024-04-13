@@ -16,8 +16,6 @@ class RestApiUtility {
 
   String _getEffectiveBaseUrl(ApiType apiType) {
     switch (apiType) {
-      case ApiType.agent:
-        return _agentBaseUrl;
       case ApiType.benchmark:
         return _benchmarkBaseUrl;
       case ApiType.leaderboard:
@@ -27,53 +25,35 @@ class RestApiUtility {
     }
   }
 
-  Future<Map<String, dynamic>> get(String endpoint,
-      {ApiType apiType = ApiType.agent}) async {
+  Future<Map<String, dynamic>> get(String endpoint, {ApiType apiType = ApiType.agent}) async {
     final effectiveBaseUrl = _getEffectiveBaseUrl(apiType);
-    final response = await http.get(Uri.parse('$effectiveBaseUrl/$endpoint'));
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load data');
-    }
+    final response = await _processResponse(await http.get(Uri.parse('$effectiveBaseUrl/$endpoint')));
+    return response;
   }
 
   Future<Map<String, dynamic>> post(
-      String endpoint, Map<String, dynamic> payload,
-      {ApiType apiType = ApiType.agent}) async {
+      String endpoint, Map<String, dynamic> payload, {ApiType apiType = ApiType.agent}) async {
     final effectiveBaseUrl = _getEffectiveBaseUrl(apiType);
-    final response = await http.post(
+    final response = await _processResponse(await http.post(
       Uri.parse('$effectiveBaseUrl/$endpoint'),
       body: json.encode(payload),
       headers: {"Content-Type": "application/json"},
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      // TODO: We are bubbling up the full response to show better errors on the UI.
-      // Let's put some thought into how we would like to structure this.
-      throw response;
-    }
+    ));
+    return response;
   }
 
   Future<Map<String, dynamic>> put(
-      String endpoint, Map<String, dynamic> payload,
-      {ApiType apiType = ApiType.agent}) async {
+      String endpoint, Map<String, dynamic> payload, {ApiType apiType = ApiType.agent}) async {
     final effectiveBaseUrl = _getEffectiveBaseUrl(apiType);
-    final response = await http.put(
+    final response = await _processResponse(await http.put(
       Uri.parse('$effectiveBaseUrl/$endpoint'),
       body: json.encode(payload),
       headers: {"Content-Type": "application/json"},
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to update data with PUT request');
-    }
+    ));
+    return response;
   }
 
-  Future<Uint8List> getBinary(String endpoint,
-      {ApiType apiType = ApiType.agent}) async {
+  Future<Uint8List> getBinary(String endpoint, {ApiType apiType = ApiType.agent}) async {
     final effectiveBaseUrl = _getEffectiveBaseUrl(apiType);
     final response = await http.get(
       Uri.parse('$effectiveBaseUrl/$endpoint'),
@@ -86,6 +66,14 @@ class RestApiUtility {
       throw Exception('Resource not found');
     } else {
       throw Exception('Failed to load binary data');
+    }
+  }
+
+  Future<Map<String, dynamic>> _processResponse(http.Response response) async {
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Request failed with status: ${response.statusCode}');
     }
   }
 }
