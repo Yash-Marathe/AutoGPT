@@ -7,62 +7,41 @@ interface CurrentEnvProps {
 
 const CurrentEnv: React.FC<CurrentEnvProps> = ({ data }) => {
   const [agentName, setAgentName] = useState<string>("mini-agi");
-  const [reportLocation, setReportLocation] = useState<string>(
-    "../reports/mini-agi"
-  );
-  const [openAiKey, setOpenAiKey] = useState<string>();
+  const [reportLocation, setReportLocation] = useState<string>("./reports/mini-agi");
+  const [openAiKey, setOpenAiKey] = useState<string>("");
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // handle form submission here
+  };
 
   return (
     <CurrentEnvContainer>
       <Title>Env Variables</Title>
-      <EnvWrapper>
-        <EnvLabel>Agent Name</EnvLabel>
-        <EnvInput
-          onChange={(e) => setAgentName(e.targetValue)}
-          placeholder="mini-agi"
-        />
-      </EnvWrapper>
-      <EnvWrapper>
-        <EnvLabel>Report Location</EnvLabel>
-        <EnvInput placeholder="Location from root" />
-      </EnvWrapper>
-      <EnvWrapper>
-        <EnvLabel>OpenAI Key</EnvLabel>
-        <EnvInput type="password" placeholder="sk-" />
-      </EnvWrapper>
-    </CurrentEnvContainer>
-  );
-};
-
-export default CurrentEnv;
-
-const CurrentEnvContainer = tw.div`
-  w-full
-  h-full
-  flex
-  flex-col
-  justify-center
-`;
-
-const Title = tw.h3`
-  font-bold
-  text-lg
-  text-center
-`;
-
-const EnvWrapper = tw.div`
-  flex
-  mt-4
-  justify-between
-  items-center
-`;
-
-const EnvLabel = tw.label`
-
-`;
-
-const EnvInput = tw.input`
-  border
-  rounded
-  px-2
-`;
+      <Form onSubmit={handleSubmit}>
+        <EnvWrapper>
+          <EnvLabel htmlFor="agent-name">Agent Name</EnvLabel>
+          <EnvInput
+            id="agent-name"
+            value={agentName}
+            onChange={(e) => setAgentName(e.target.value)}
+            placeholder="mini-agi"
+            required
+          />
+        </EnvWrapper>
+        <EnvWrapper>
+          <EnvLabel htmlFor="report-location">Report Location</EnvLabel>
+          <EnvInput
+            id="report-location"
+            value={reportLocation}
+            onChange={(e) => setReportLocation(e.target.value)}
+            placeholder="Location from root"
+            required
+          />
+        </EnvWrapper>
+        <EnvWrapper>
+          <EnvLabel htmlFor="open-ai-key">OpenAI Key</EnvLabel>
+          <EnvInput
+            id="open-ai-key"
+            type="password"
+            value={openAiKey
