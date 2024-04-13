@@ -18,7 +18,6 @@ _QUEUE_SEMAPHORE = Semaphore(
     1
 )  # The amount of sounds to queue before blocking the main thread
 
-
 class TTSConfig(SystemConfiguration):
     speak_mode: bool = False
     elevenlabs: Optional[ElevenLabsConfig] = None
@@ -39,41 +38,51 @@ class TTSConfig(SystemConfiguration):
         ),
     )  # type: ignore
 
-
 class TextToSpeechProvider:
+    def __new__(cls, config: TTSConfig):
+        tts_provider = config.provider
+        if tts_provider == "elevenlabs":
+            return ElevenLabsSpeech(config.elevenlabs)
+        elif tts_provider == "macos":
+            return MacOSTTS()
+        elif tts_provider == "streamelements":
+            return StreamElementsSpeech(config.streamelements)
+        else:
+            return GTTSVoice()
+
     def __init__(self, config: TTSConfig):
         self._config = config
-        self._default_voice_engine, self._voice_engine = self._get_voice_engine(config)
+        self._voice_engine = self.__new__(self, config)
 
     def say(self, text, voice_index: int = 0) -> None:
         def _speak() -> None:
-            success = self._voice_engine.say(text, voice_index)
-            if not success:
-                self._default_voice_engine.say(text, voice_index)
-            _QUEUE_SEMAPHORE.release()
+            try:
+                self._voice_engine.say(text, voice_index)
+            except Exception as e:
+                print(f"Error while speaking: {e}")
+            finally:
+                _QUEUE_SEMAPHORE.release()
 
         if self._config.speak_mode:
             _QUEUE_SEMAPHORE.acquire(True)
             thread = threading.Thread(target=_speak)
             thread.start()
 
+    async def say_async(self, text, voice_index: int = 0) -> None:
+        def _speak() -> None:
+            try:
+                self._voice_engine.say(text, voice_index)
+            except Exception as e:
+                print(f"Error while speaking: {e}")
+
+        if self._config.speak_mode:
+            _QUEUE_SEMAPHORE.acquire(True)
+            thread = threading.Thread(target=_speak)
+            thread.start()
+            thread.join()
+
     def __repr__(self):
         return "{class_name}(provider={voice_engine_name})".format(
             class_name=self.__class__.__name__,
             voice_engine_name=self._voice_engine.__class__.__name__,
         )
-
-    @staticmethod
-    def _get_voice_engine(config: TTSConfig) -> tuple[VoiceBase, VoiceBase]:
-        """Get the voice engine to use for the given configuration"""
-        tts_provider = config.provider
-        if tts_provider == "elevenlabs":
-            voice_engine = ElevenLabsSpeech(config.elevenlabs)
-        elif tts_provider == "macos":
-            voice_engine = MacOSTTS()
-        elif tts_provider == "streamelements":
-            voice_engine = StreamElementsSpeech(config.streamelements)
-        else:
-            voice_engine = GTTSVoice()
-
-        return GTTSVoice(), voice_engine
