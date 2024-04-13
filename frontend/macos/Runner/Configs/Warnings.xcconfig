@@ -1,13 +1,55 @@
-WARNING_CFLAGS = -Wall -Wconditional-uninitialized -Wnullable-to-nonnull-conversion -Wmissing-method-return-type -Woverlength-strings
-GCC_WARN_UNDECLARED_SELECTOR = YES
-CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES
-CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE
-CLANG_WARN__DUPLICATE_METHOD_MATCH = YES
-CLANG_WARN_PRAGMA_PACK = YES
-CLANG_WARN_STRICT_PROTOTYPES = YES
-CLANG_WARN_COMMA = YES
-GCC_WARN_STRICT_SELECTOR_MATCH = YES
-CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES
-CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES
-GCC_WARN_SHADOW = YES
-CLANG_WARN_UNREACHABLE_CODE = YES
+WARNING_CFLAGS = \
+-Wall \
+-Wconditional-uninitialized \
+-Wnullable-to-nonnull-conversion \
+-Wmissing-method-return-type \
+-Woverlength-strings \
+-Wextra
+
+CLANG_WARNINGS = \
+-Wundef \
+-Wunused-variable \
+-Wunused-function \
+-Wno-missing-field-initializers \
+-Wdocumentation \
+-Wunreachable-code-after-finish \
+-Wimplicit-atomic-properties \
+-Wstrict-prototypes \
+-Wcomma \
+-Wshorten-64-to-32 \
+-Wpointer-sign \
+-Wint-conversion \
+-Wbool-conversion \
+-Wenum-conversion \
+-Wconstant-conversion \
+-Wint-to-pointer-cast \
+-Wpointer-to-int-cast \
+-Warc-repeated-use-of-weak \
+-Wduplicate-method-match \
+-Wno-pragma-clang-attribute \
+-Wstrict-overflow \
+-Wtautological-pointer-compare \
+-Wmissing-braces \
+-Wparentheses \
+-Wswitch \
+-Wswitch-enum \
+-Wunused-const-variable \
+-Wempty-body \
+-Wconditional-uninitialized \
+-Wmissing-variable-declarations \
+-Wuninitialized \
+-Wunknown-pragmas \
+-Wshadow \
+-Wno-newline-eof \
+-Winit-self \
+-Wno-final-dtor-non-callable \
+-Wno-final-dtor-missing \
+-Wno-objc-interface-ivars \
+-Wno-c++11-extensions \
+-Wno-private-fields \
+-Wno-weak-field-init \
+-Wno-missing-prototypes \
+-Wno-sign-conversion \
+-Wno-missing-braces \
+-Wno-deprecated-implementations \
+-Wno-documentation
