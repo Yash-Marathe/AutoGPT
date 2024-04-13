@@ -5,6 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // Test group for UserMessageTile widget
   group('UserMessageTile', () {
+    // Test widget
+    UserMessageTile? userMessageTile;
+
+    // Setup method called before each test
+    setUp(() {
+      userMessageTile = UserMessageTile(message: 'Initial message');
+    });
+
     // Test to check if the widget renders without error
     testWidgets('renders without error', (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(
@@ -16,12 +24,12 @@ void main() {
     });
 
     // Test to check if the widget displays the correct user message
-    testWidgets('displays the correct user message',
-        (WidgetTester tester) async {
+    testWidgets('displays the correct user message', (WidgetTester tester) async {
       const testMessage = 'Test Message';
+      userMessageTile!.message = testMessage;
       await tester.pumpWidget(const MaterialApp(
         home: Scaffold(
-          body: UserMessageTile(message: testMessage),
+          body: UserMessageTile(message: ''),
         ),
       ));
 
