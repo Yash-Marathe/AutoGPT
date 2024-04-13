@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class NewTaskButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final ButtonStyle? style;
 
-  const NewTaskButton({Key? key, required this.onPressed}) : super(key: key);
+  const NewTaskButton({
+    Key? key,
+    required this.onPressed,
+    this.style,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,7 @@ class NewTaskButton extends StatelessWidget {
 
     return ElevatedButton(
       onPressed: onPressed,
-      style: ButtonStyle(
+      style: style ?? ButtonStyle(
         // Set the button's background color
         backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
         // Set the button's edge
@@ -24,14 +29,14 @@ class NewTaskButton extends StatelessWidget {
             const BorderSide(color: Colors.black, width: 0.5)),
         // Set the button's shape with rounded corners
         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
+          const RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
         ),
       ),
       child: SizedBox(
         width: buttonWidth,
-        height: 50,
+        height: 50, // The height of the button
         child: const Row(
           children: [
             // Black plus icon
