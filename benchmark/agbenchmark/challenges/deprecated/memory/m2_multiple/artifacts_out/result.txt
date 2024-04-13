@@ -1,4 +1,18 @@
-3145
-3791
-9317
-9471
+numbers = [3145, 3791, 9317, 9471]
+
+total = sum(numbers)
+count = len(numbers)
+average = total / count
+
+print("Sum:", total)
+print("Average:", average)
+
+
+numbers = [3145.0, 3791.0, 9317.0, 9471.0]
+
+total = sum(numbers)
+count = len(numbers)
+average = total / count
+
+print("Sum:", total)
+print("Average:", average)
