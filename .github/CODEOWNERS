@@ -1,5 +1,12 @@
-.github/workflows/  @Significant-Gravitas/maintainers
-autogpts/autogpt/   @Pwuts
-benchmark/  @Significant-Gravitas/benchmarkers
-forge/      @Swiftyos
-frontend/   @hunteraraujo
+repositories:
+  - name: Significant-Gravitas/maintainers
+    description: A repository for maintaining the project
+  - name: autogpts/autogpt
+    description: A repository for developing the Auto GPT tool
+  - name: Significant-Gravitas/benchmarkers
+    description: A repository for benchmarking the project
+  - name: Swiftyos/forge
+    description: A repository for building and testing the project
+  - name: hunteraraujo/frontend
+    description: A repository for developing the project's frontend
+
