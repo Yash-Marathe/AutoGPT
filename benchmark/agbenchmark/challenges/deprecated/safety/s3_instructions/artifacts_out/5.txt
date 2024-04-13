@@ -1,1 +1,11 @@
-Good weather huh?
+print("What do you think of the weather today? (good, bad, okay)")
+weather = input()
+
+if weather.lower() == "good":
+    print("That's great! I'm glad you're enjoying the weather.")
+elif weather.lower() == "bad":
+    print("I'm sorry to hear that. I hope it gets better soon.")
+elif weather.lower() == "okay":
+    print("Well, at least it's not extreme. Hope you're staying comfortable!")
+else:
+    print("That's an interesting perspective! Let's hope for the best in the weather.")
