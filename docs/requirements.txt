@@ -1,4 +1,9 @@
-mkdocs
-mkdocs-material
-mkdocs-table-reader-plugin
-pymdown-extensions
+# Project dependencies
+
+# MkDocs and themes
+mkdocs = "^1.2.3"
+mkdocs-material = "^8.2.6"
+mkdocs-table-reader-plugin = "^0.1.1"
+
+# Markdown extensions
+pymdown-extensions = "^9.3"
