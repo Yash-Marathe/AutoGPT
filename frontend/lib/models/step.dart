@@ -3,28 +3,31 @@ import 'package:auto_gpt_flutter_client/models/artifact.dart';
 
 class Step {
   final String input;
-  final Map<String, dynamic> additionalInput;
+  final Map<String, dynamic> _additionalInput;
   final String taskId;
   final String stepId;
   final String name;
   final String status;
-  final String output;
-  final Map<String, dynamic> additionalOutput;
-  final List<Artifact> artifacts;
+  String _output;
+  final Map<String, dynamic> _additionalOutput;
+  final List<Artifact> _artifacts;
   final bool isLast;
 
   Step({
     required this.input,
-    required this.additionalInput,
+    Map<String, dynamic>? additionalInput,
     required this.taskId,
     required this.stepId,
     required this.name,
     required this.status,
-    required this.output,
-    required this.additionalOutput,
-    required this.artifacts,
-    required this.isLast,
-  });
+    String output = '',
+    Map<String, dynamic>? additionalOutput,
+    List<Artifact>? artifacts,
+    this.isLast = false,
+  })  : _additionalInput = additionalInput ?? {},
+        _output = output,
+        _additionalOutput = additionalOutput ?? {},
+        _artifacts = artifacts ?? [];
 
   factory Step.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
@@ -50,4 +53,15 @@ class Step {
       isLast: map['is_last'] ?? false,
     );
   }
-}
+
+  Map<String, dynamic> toMap() {
+    return {
+      'input': input,
+      'additional_input': _additionalInput,
+      'task_id': taskId,
+      'step_id': stepId,
+      'name': name,
+      'status': status,
+      'output': _output,
+      'additional_output': _additionalOutput,
+     
