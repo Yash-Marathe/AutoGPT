@@ -1,8 +1,10 @@
 """Commands to perform Git operations"""
 
 from pathlib import Path
-
-from git.repo import Repo
+from urllib.parse import urlparse
+import git
+import time
+from typing import Any, Dict, Union
 
 from autogpt.agents.agent import Agent
 from autogpt.agents.utils.exceptions import CommandExecutionError
@@ -15,6 +17,20 @@ from .decorators import sanitize_path_arg
 COMMAND_CATEGORY = "git_operations"
 COMMAND_CATEGORY_TITLE = "Git Operations"
 
+def is_git_repo_url(url: str) -> bool:
+    """Check if the URL is a valid Git repository URL.
+
+    Args:
+        url (str): The URL to check.
+
+    Returns:
+        bool: True if the URL is a valid Git repository URL, False otherwise.
+    """
+    try:
+        repo = git.Repo(url=url)
+        return True
+    except git.exc.GitError:
+        return False
 
 @command(
     "clone_repository",
@@ -30,29 +46,25 @@ COMMAND_CATEGORY_TITLE = "Git Operations"
             description="The path to clone the repository to",
             required=True,
         ),
+        "timeout": JSONSchema(
+            type=JSONSchema.Type.INTEGER,
+            description="The timeout in seconds for the clone operation",
+            required=False,
+            default=300,
+        ),
     },
     lambda config: bool(config.github_username and config.github_api_key),
     "Configure github_username and github_api_key.",
 )
 @sanitize_path_arg("clone_path")
 @validate_url
-def clone_repository(url: str, clone_path: Path, agent: Agent) -> str:
+def clone_repository(url: str, clone_path: Path, timeout: int, agent: Agent) -> str:
     """Clone a GitHub repository locally.
 
     Args:
         url (str): The URL of the repository to clone.
         clone_path (Path): The path to clone the repository to.
+        timeout (int): The timeout in seconds for the clone operation.
 
     Returns:
         str: The result of the clone operation.
-    """
-    split_url = url.split("//")
-    auth_repo_url = f"//{agent.legacy_config.github_username}:{agent.legacy_config.github_api_key}@".join(  # noqa: E501
-        split_url
-    )
-    try:
-        Repo.clone_from(url=auth_repo_url, to_path=clone_path)
-    except Exception as e:
-        raise CommandExecutionError(f"Could not clone repo: {e}")
-
-    return f"""Cloned {url} to {clone_path}"""
