@@ -1,12 +1,9 @@
-from __future__ import annotations
-
-import logging
 from typing import List, Optional
 
-import openai
-from openai import Model
+import logging
+from openai import Model, model_names
+from openai.error import APIError
 
-from autogpt.core.resource.model_providers.openai import OPEN_AI_MODELS
 from autogpt.core.resource.model_providers.schema import ChatModelInfo
 from autogpt.singleton import Singleton
 
@@ -15,97 +12,65 @@ logger = logging.getLogger(__name__)
 
 class ApiManager(metaclass=Singleton):
     def __init__(self):
-        self.total_prompt_tokens = 0
-        self.total_completion_tokens = 0
-        self.total_cost = 0
-        self.total_budget = 0
-        self.models: Optional[list[Model]] = None
+        self.total_prompt_tokens: int = 0
+        self.total_completion_tokens: int = 0
+        self.total_cost: float = 0
+        self.total_budget: float = 0
+        self.models: Optional[List[str]] = None
 
     def reset(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
         self.total_cost = 0
-        self.total_budget = 0.0
+        self.total_budget = 0
         self.models = None
 
-    def update_cost(self, prompt_tokens, completion_tokens, model):
-        """
-        Update the total cost, prompt tokens, and completion tokens.
-
-        Args:
-        prompt_tokens (int): The number of tokens used in the prompt.
-        completion_tokens (int): The number of tokens used in the completion.
-        model (str): The model used for the API call.
-        """
+    def update_cost(self, prompt_tokens: int, completion_tokens: int, model: str):
         # the .model property in API responses can contain version suffixes like -v2
         model = model[:-3] if model.endswith("-v2") else model
-        model_info = OPEN_AI_MODELS[model]
+        model_info = OPEN_AI_MODELS.get(model, None)
+
+        if model_info is None:
+            logger.warning(f"Unknown model: {model}")
+            return
 
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        self.total_cost += prompt_tokens * model_info.prompt_token_cost / 1000
-        if isinstance(model_info, ChatModelInfo):
-            self.total_cost += (
-                completion_tokens * model_info.completion_token_cost / 1000
-            )
+
+        self.total_cost += (
+            prompt_tokens * model_info.prompt_token_cost / 1000
+            + completion_tokens * model_info.completion_token_cost / 1000
+        )
 
         logger.debug(f"Total running cost: ${self.total_cost:.3f}")
 
-    def set_total_budget(self, total_budget):
-        """
-        Sets the total user-defined budget for API calls.
-
-        Args:
-        total_budget (float): The total budget for API calls.
-        """
+    def set_total_budget(self, total_budget: float):
+        if total_budget < 0:
+            raise ValueError("Total budget should be a non-negative value.")
         self.total_budget = total_budget
 
-    def get_total_prompt_tokens(self):
-        """
-        Get the total number of prompt tokens.
-
-        Returns:
-        int: The total number of prompt tokens.
-        """
+    def get_total_prompt_tokens(self) -> int:
         return self.total_prompt_tokens
 
-    def get_total_completion_tokens(self):
-        """
-        Get the total number of completion tokens.
-
-        Returns:
-        int: The total number of completion tokens.
-        """
+    def get_total_completion_tokens(self) -> int:
         return self.total_completion_tokens
 
-    def get_total_cost(self):
-        """
-        Get the total cost of API calls.
-
-        Returns:
-        float: The total cost of API calls.
-        """
+    def get_total_cost(self) -> float:
         return self.total_cost
 
-    def get_total_budget(self):
-        """
-        Get the total user-defined budget for API calls.
-
-        Returns:
-        float: The total budget for API calls.
-        """
+    def get_total_budget(self) -> float:
         return self.total_budget
 
-    def get_models(self, **openai_credentials) -> List[Model]:
-        """
-        Get list of available GPT models.
+    @property
+    def remaining_budget(self) -> float:
+        return self.total_budget - self.total_cost
 
-        Returns:
-        list: List of available GPT models.
-
-        """
+    def get_models(self, **openai_credentials) -> List[str]:
         if self.models is None:
-            all_models = openai.Model.list(**openai_credentials)["data"]
-            self.models = [model for model in all_models if "gpt" in model["id"]]
+            try:
+                self.models = model_names(**openai_credentials)
+            except APIError as e:
+                logger.warning(f"Failed to fetch models: {e}")
+                self.models = []
 
         return self.models
