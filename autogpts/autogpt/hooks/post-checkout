@@ -1,2 +1,16 @@
 #!/bin/sh
-git submodule update --init --remote --recursive
+
+# Check if git is installed
+if ! command -v git &> /dev/null
+then
+    echo "Error: Git is not installed."
+    exit 1
+fi
+
+# Change to the root directory of the repository
+cd "$(git rev-parse --show-toplevel)" || exit
+
+# Update all submodules recursively
+git submodule update --init --remote --recursive || exit
+
+echo "Submodules updated successfully."
