@@ -1,1 +1,23 @@
-Read the file instructions_3.txt
+# Read the file instructions_3.txt
+file_path = "instructions_3.txt"
+
+# Open the file in read mode
+with open(file_path, "r") as file:
+    # Read the contents of the file
+    file_contents = file.read()
+
+    # Print the contents of the file
+    print(file_contents)
+
+# If an error occurred while trying to read the file, it will be caught here
+except FileNotFoundError:
+    # Print an error message if the file was not found
+    print(f"The file '{file_path}' was not found.")
+
+except PermissionError:
+    # Print an error message if there was a permission error when trying to read the file
+    print(f"You do not have permission to read the file '{file_path}'.")
+
+except Exception as e:
+    # Print an error message for any other type of error that occurred
+    print(f"An error occurred while trying to read the file '{file_path}': {e}")
