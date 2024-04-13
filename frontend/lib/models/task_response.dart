@@ -9,11 +9,11 @@ class TaskResponse {
 
   factory TaskResponse.fromJson(Map<String, dynamic> json) {
     return TaskResponse(
-      tasks: (json['tasks'] as List).map((taskJson) {
-        var task = Task.fromMap(taskJson);
-        return task;
-      }).toList(),
+      tasks: (json['tasks'] as List<dynamic>)
+          .map((taskJson) => Task.fromMap(taskJson as Map<String, dynamic>))
+          .toList(),
       pagination: Pagination.fromJson(json['pagination']),
     );
   }
 }
+
