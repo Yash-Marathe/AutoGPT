@@ -1,3 +1,20 @@
 #!/bin/bash
 
+# Check if the python3 command is available
+if ! command -v python3 &> /dev/null
+then
+    echo "Python 3 is not installed. Please install it and try again."
+    exit 1
+fi
+
+# Check if the cli.py script is available
+if ! [ -f cli.py ]
+then
+    echo "cli.py script not found in the current directory."
+    echo "Please make sure the script is present and try again."
+    exit 1
+fi
+
+# Run the cli.py script with the provided arguments
 python3 cli.py "$@"
+
