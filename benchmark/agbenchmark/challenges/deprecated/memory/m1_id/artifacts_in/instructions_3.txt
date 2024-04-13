@@ -1,1 +1,9 @@
-Read the file instructions_4.txt
+# Read the contents of the file "instructions\_4.txt"
+try:
+    with open("instructions\_4.txt", "r") as file:
+        contents = file.read()
+except FileNotFoundError:
+    print("The file 'instructions\_4.txt' was not found.")
+else:
+    # Do something with the contents of the file here
+    print(contents)
