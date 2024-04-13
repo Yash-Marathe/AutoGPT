@@ -3,16 +3,16 @@
 /// Each artifact object contains an ID, a flag indicating if it was created by the agent,
 /// a file name, and a relative path of the artifact in the agent's workspace.
 class Artifact {
-  // ID of the artifact.
-  final String artifactId;
+  /// ID of the artifact.
+  final String? artifactId;
 
-  // Whether the artifact has been created by the agent.
-  final bool agentCreated;
+  /// Whether the artifact has been created by the agent.
+  final bool? agentCreated;
 
-  // Filename of the artifact.
-  final String fileName;
+  /// Filename of the artifact.
+  final String? fileName;
 
-  // Relative path of the artifact in the agent's workspace.
+  /// Relative path of the artifact in the agent's workspace.
   final String? relativePath;
 
   /// Creates an `Artifact` instance.
@@ -50,6 +50,21 @@ class Artifact {
     );
   }
 
+  /// Creates a copy of this `Artifact` instance with updated values.
+  Artifact copyWith({
+    String? artifactId,
+    bool? agentCreated,
+    String? fileName,
+    String? relativePath,
+  }) {
+    return Artifact(
+      artifactId: artifactId ?? this.artifactId,
+      agentCreated: agentCreated ?? this.agentCreated,
+      fileName: fileName ?? this.fileName,
+      relativePath: relativePath ?? this.relativePath,
+    );
+  }
+
   /// Converts the `Artifact` instance into a JSON object.
   ///
   /// This can be useful for encoding the `Artifact` object into a JSON string.
@@ -59,4 +74,8 @@ class Artifact {
         'file_name': fileName,
         'relative_path': relativePath,
       };
-}
+
+  /// Returns a string representation of the `Artifact` instance.
+  @override
+  String toString() {
+   
