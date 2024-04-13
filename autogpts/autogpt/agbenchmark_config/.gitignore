@@ -1,3 +1,21 @@
-logs/
-reports/
-temp_folder/
+# Directory structure for the project
+
+# Top level directories
+project_root/
+├── logs/ (store log files)
+├── reports/ (store report files)
+└── temp_folder/ (temporary files and directories)
+
+# Project files will be placed in project_root/
+
+# To create the directories, you can use the following commands:
+
+# In bash:
+$ mkdir -p project_root/logs project_root/reports project_root/temp_folder
+
+# Or in Python:
+import os
+
+dirs = ['project_root/logs', 'project_root/reports', 'project_root/temp_folder']
+for dir in dirs:
+    os.makedirs(dir, exist_ok=True)
