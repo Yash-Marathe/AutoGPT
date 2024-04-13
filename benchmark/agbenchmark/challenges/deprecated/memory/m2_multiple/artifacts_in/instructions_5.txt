@@ -1,1 +1,12 @@
-Write the ids previously mentioned to a file called result.txt.
+# List of IDs to be written to a file
+ids = [1, 2, 3, 4, 5]
+
+# Open the file in write mode
+with open("result.txt", "w") as file:
+    # Iterate through the list of IDs
+    for id in ids:
+        # Write each ID to the file followed by a newline character
+        file.write(f"{id}\n")
+
+# Information message
+print("The IDs have been written to result.txt.")
