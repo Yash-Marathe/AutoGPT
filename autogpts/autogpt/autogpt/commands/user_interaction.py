@@ -10,13 +10,10 @@ from autogpt.core.utils.json_schema import JSONSchema
 COMMAND_CATEGORY = "user_interaction"
 COMMAND_CATEGORY_TITLE = "User Interaction"
 
-
 @command(
     "ask_user",
-    (
-        "If you need more details or information regarding the given goals,"
-        " you can ask the user for input"
-    ),
+    "If you need more details or information regarding the given goals, "
+    "you can ask the user for input.",
     {
         "question": JSONSchema(
             type=JSONSchema.Type.STRING,
@@ -26,7 +23,8 @@ COMMAND_CATEGORY_TITLE = "User Interaction"
     },
     enabled=lambda config: not config.noninteractive_mode,
 )
-async def ask_user(question: str, agent: Agent) -> str:
+async def ask_user(agent: Agent, question: str) -> str:
+    """Ask the user a question and return their answer."""
     print(f"\nQ: {question}")
-    resp = await clean_input(agent.legacy_config, "A:")
-    return f"The user's answer: '{resp}'"
+    user_answer = await clean_input(agent.legacy_config, "A:")
+    return f"The user's answer: '{user_answer}'"
