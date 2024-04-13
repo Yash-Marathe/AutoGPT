@@ -1,17 +1,23 @@
-flutter/ephemeral/
+# Flutter ephemeral files and directories
+#
+# This file should be placed in the root of your project and
+# contains a list of files and directories that are generated at
+# runtime or by build tools and can be safely ignored when
+# checking in code to source control.
+#
+# See https://flutter.dev/docs/development/tools/vs-code/projects for
+# additional information.
 
-# Visual Studio user-specific files.
+# User-specific files
 *.suo
+*.ntuser.json
 *.user
 *.userosscache
 *.sln.docstates
 
-# Visual Studio build-related files.
-x64/
-x86/
+# Build-related files and directories
+/build/
+/.flutter-plugins-dependencies/
 
 # Visual Studio cache files
-# files ending in .cache can be ignored
-*.[Cc]ache
-# but keep track of directories ending in .cache
-!*.[Cc]ache/
+#
