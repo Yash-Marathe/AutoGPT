@@ -1,3 +1,6 @@
+"""
+A module for handling the finish action.
+"""
 from sdk.forge_log import ForgeLogger
 from .registry import action
 
@@ -17,7 +20,7 @@ logger = ForgeLogger(__name__)
             "required": True,
         }
     ],
-    output_type="None",
+    output_type="str",  # Return type changed to str
 )
 async def finish(
     agent,
@@ -25,13 +28,16 @@ async def finish(
     reason: str,
 ) -> str:
     """
-    A function that takes in a string and exits the program
+    A function that takes in a string and exits the program.
 
     Parameters:
         reason (str): A summary to the user of how the goals were accomplished.
+
     Returns:
-        A result string from create chat completion. A list of suggestions to
-            improve the code.
+        A result string from create chat completion.
+
+    Suggestions to improve the code:
+    * Consider adding more functionality to the finish action, such as cleaning up resources or logging more information.
     """
     logger.info(reason, extra={"title": "Shutting down...\n"})
-    return reason
+    return f"Finished with reason: {reason}"  # Return a result string
