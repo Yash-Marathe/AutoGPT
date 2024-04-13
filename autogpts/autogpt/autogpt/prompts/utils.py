@@ -1,11 +1,11 @@
-from typing import Any
+from typing import Any, List
 
-
-def format_numbered_list(items: list[Any], start_at: int = 1) -> str:
-    return "\n".join(f"{i}. {str(item)}" for i, item in enumerate(items, start_at))
-
+def format_numbered_list(items: List[Any], start_at: int = 1) -> str:
+    """Format a list of items as a numbered list, starting at the given index."""
+    return "\n".join(f"{i}. {item}" for i, item in enumerate(items, start_at))
 
 def indent(content: str, indentation: int | str = 4) -> str:
-    if type(indentation) is int:
+    """Indent the given content by the specified amount."""
+    if isinstance(indentation, int):
         indentation = " " * indentation
-    return indentation + content.replace("\n", f"\n{indentation}")  # type: ignore
+    return "".join([indentation, *content.splitlines(), ""])
