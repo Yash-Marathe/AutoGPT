@@ -2,6 +2,10 @@ import enum
 from pathlib import Path
 from typing import Optional
 
+import boto3
+from google.cloud import storage
+from pydantic import BaseModel
+
 from .base import FileWorkspace
 
 
@@ -11,36 +15,42 @@ class FileWorkspaceBackendName(str, enum.Enum):
     S3 = "s3"
 
 
-def get_workspace(
-    backend: FileWorkspaceBackendName, *, id: str = "", root_path: Optional[Path] = None
-) -> FileWorkspace:
-    assert bool(root_path) != bool(id), "Specify root_path or id to get workspace"
-    if root_path is None:
-        root_path = Path(f"/workspaces/{id}")
-
-    match backend:
-        case FileWorkspaceBackendName.LOCAL:
-            from .local import FileWorkspaceConfiguration, LocalFileWorkspace
-
-            config = FileWorkspaceConfiguration.from_env()
-            config.root = root_path
-            return LocalFileWorkspace(config)
-        case FileWorkspaceBackendName.S3:
-            from .s3 import S3FileWorkspace, S3FileWorkspaceConfiguration
-
-            config = S3FileWorkspaceConfiguration.from_env()
-            config.root = root_path
-            return S3FileWorkspace(config)
-        case FileWorkspaceBackendName.GCS:
-            from .gcs import GCSFileWorkspace, GCSFileWorkspaceConfiguration
-
-            config = GCSFileWorkspaceConfiguration.from_env()
-            config.root = root_path
-            return GCSFileWorkspace(config)
+class FileWorkspaceConfiguration(BaseModel):
+    root: Path
 
 
-__all__ = [
-    "FileWorkspace",
-    "FileWorkspaceBackendName",
-    "get_workspace",
-]
+class LocalFileWorkspaceConfiguration(FileWorkspaceConfiguration):
+    def __init__(self, root: Path):
+        super().__init__(root=root)
+
+
+class S3FileWorkspaceConfiguration(FileWorkspaceConfiguration):
+    def __init__(self, root: Path):
+        self.root = root
+        self.s3 = boto3.resource("s3")
+
+
+class GCSFileWorkspaceConfiguration(FileWorkspaceConfiguration):
+    def __init__(self, root: Path):
+        self.root = root
+        self.client = storage.Client()
+
+
+class LocalFileWorkspace(FileWorkspace):
+    def __init__(self, config: LocalFileWorkspaceConfiguration):
+        self.config = config
+
+
+class S3FileWorkspace(FileWorkspace):
+    def __init__(self, config: S3FileWorkspaceConfiguration):
+        self.config = config
+        self.bucket = config.s3.Bucket(config.root.parent.name)
+
+
+class GCSFileWorkspace(FileWorkspace):
+    def __init__(self, config: GCSFileWorkspaceConfiguration):
+        self.config = config
+        self.bucket = self.config.client.get_bucket(config.root.parent.name)
+
+
+
