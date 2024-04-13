@@ -1,13 +1,27 @@
 #!/bin/bash
 
- ENV_PATH=$(poetry env info --path)
- if [ -d "$ENV_PATH" ]; then
-     rm -rf $ENV_PATH
-     echo "Removed the poetry environment at $ENV_PATH."
- else
-     echo "No poetry environment found."
- fi
+# Use a trap to ensure the poetry environment is removed even if the script is interrupted
+trap 'poetry env info --path | xargs -I{} rm -rf {}' EXIT
 
- poetry install --extras benchmark
- echo "Setup completed successfully."
- exit 0
+# Get the path to the poetry environment
+ENV_PATH=$(poetry env info --path)
+
+# Check if the poetry environment exists
+if [ -d "$ENV_PATH" ]; then
+    # Remove the poetry environment
+    poetry env remove --no-vcs || true
+    echo "Poetry environment at $ENV_PATH removed."
+else
+    echo "No poetry environment found."
+fi
+
+# Install dependencies with the benchmark extra
+poetry install --extras benchmark
+
+# Check for errors
+if [ $? -eq 0 ]; then
+    echo "Setup completed successfully."
+else
+    echo "An error occurred during setup."
+    exit 1
+fi
