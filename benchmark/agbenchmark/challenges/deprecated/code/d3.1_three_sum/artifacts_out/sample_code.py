@@ -1,10 +1,8 @@
 from typing import List, Optional
 
-
 def three_sum(nums: List[int], target: int) -> Optional[List[int]]:
-    nums_indices = [(num, index) for index, num in enumerate(nums)]
-    nums_indices.sort()
-    for i in range(len(nums_indices) - 2):
+    nums_indices = sorted((num, index) for index, num in enumerate(nums))
+    for i in range(len(nums_indices)):
         if i > 0 and nums_indices[i] == nums_indices[i - 1]:
             continue
         l, r = i + 1, len(nums_indices) - 1
@@ -15,8 +13,5 @@ def three_sum(nums: List[int], target: int) -> Optional[List[int]]:
             elif three_sum > target:
                 r -= 1
             else:
-                indices = sorted(
-                    [nums_indices[i][1], nums_indices[l][1], nums_indices[r][1]]
-                )
-                return indices
+                return [nums_indices[i][1], nums_indices[l][1], nums_indices[r][1]]
     return None
