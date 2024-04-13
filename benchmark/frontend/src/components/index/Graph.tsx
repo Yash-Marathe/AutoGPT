@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Network } from "vis-network";
-import { DataSet } from "vis-data";
-
+import { Network, DataSet } from "vis-network/standalone";
+import "vis-network/styles/vis-network.css";
 import tw from "tailwind-styled-components";
 
 import { GraphNode, TaskData } from "../../lib/types";
@@ -33,26 +32,22 @@ const Graph: React.FC<GraphProps> = ({
     if (!graphRef.current) {
       return;
     }
+
     const nodes = new DataSet<GraphNode>(graphData.nodes);
     const edges = new DataSet<GraphEdge>(graphData.edges);
 
-    const data = {
-      nodes: nodes,
-      edges: edges,
-    };
-
-    const options = {
+    const network = new Network(graphRef.current, { nodes, edges }, {
       nodes: {
         font: {
-          size: 20, // Increased font size for labels
-          color: "black", // Set a readable font color
+          size: 20,
+          color: "black",
         },
         shapeProperties: {
           useBorderWithImage: true,
         },
       },
       edges: {
-        length: 250, // Increased edge length
+        length: 250,
       },
       layout: {
         hierarchical: {
@@ -81,11 +76,8 @@ const Graph: React.FC<GraphProps> = ({
         },
         timestep: 0.5,
       },
-    };
+    });
 
-    const network = new Network(graphRef.current, data, options);
-
-    // Add an event listener for node clicks
     network.on("click", (params) => {
       if (params.nodes.length) {
         const nodeId = params.nodes[0];
@@ -99,14 +91,18 @@ const Graph: React.FC<GraphProps> = ({
         setIsTaskInfoExpanded(false);
       }
     });
-  }, [graphData]);
+
+    return () => {
+      network.destroy();
+    };
+  }, [graphData, setSelectedTask, setIsTaskInfoExpanded]);
 
   return <GraphContainer ref={graphRef} />;
 };
-
-export default Graph;
 
 const GraphContainer = tw.div`
   w-full
   h-full
 `;
+
+export default Graph;
